@@ -1,2 +1,2 @@
 # rust-gray-matter
-gray-matter implemented in rust
+[gray-matter](https://github.com/jonschlinkert/gray-matter) implemented in rust
