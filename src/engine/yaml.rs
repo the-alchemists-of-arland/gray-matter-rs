@@ -29,7 +29,12 @@ impl Engine for YAML {
 #[test]
 fn test_matter() {
     let matter: Matter<YAML> = Matter::new();
-    let input = "---\ntitle: Home\n---\nSome excerpt\n---\nOther stuff";
+    let input = r#"---
+title: Home
+---
+Some excerpt
+---
+Other stuff"#;
 
     let mut hash_map = Hash::new();
     hash_map.insert(
