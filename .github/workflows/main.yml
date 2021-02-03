@@ -1,0 +1,22 @@
+name: main
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    container: rust:1.49
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run Tests
+        run: cargo test
