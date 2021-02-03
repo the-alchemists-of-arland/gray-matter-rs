@@ -1,6 +1,4 @@
 use crate::engine::Engine;
-use crate::entity::ParsedEntity;
-use crate::matter::Matter;
 use yaml_rust::yaml::Hash;
 use yaml_rust::{Yaml, YamlLoader};
 
@@ -28,6 +26,8 @@ impl Engine for YAML {
 
 #[test]
 fn test_matter() {
+    use crate::entity::ParsedEntity;
+    use crate::matter::Matter;
     let matter: Matter<YAML> = Matter::new();
     let input = r#"---
 title: Home

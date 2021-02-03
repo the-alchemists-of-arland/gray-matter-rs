@@ -1,6 +1,4 @@
 use crate::engine::Engine;
-use crate::entity::ParsedEntity;
-use crate::matter::Matter;
 
 #[derive(PartialEq, Debug)]
 pub struct JSON {}
@@ -26,6 +24,9 @@ impl Engine for JSON {
 
 #[test]
 fn test_matter() {
+    use crate::entity::ParsedEntity;
+    use crate::matter::Matter;
+    use ::json::object;
     let matter: Matter<JSON> = Matter::new();
     let input = r#"---
 {"title": "Home"}
