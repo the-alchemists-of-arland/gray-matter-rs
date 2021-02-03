@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate json;
 pub mod engine;
 pub mod entity;
 pub mod matter;
