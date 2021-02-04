@@ -50,13 +50,13 @@ impl Pod {
     }
 
     /// Inserts a key value pair into or override the exist one in Pod::Hash.
-    pub fn insert<T>(&mut self, key: &'static str, val: T) -> IResult<()>
+    pub fn insert<T>(&mut self, key: String, val: T) -> IResult<()>
     where
         T: Into<Pod>,
     {
         match *self {
             Pod::Hash(ref mut hash) => {
-                hash.insert(key.to_string(), val.into());
+                hash.insert(key, val.into());
                 Ok(())
             }
             _ => Err(Error::type_error("Hash")),
@@ -64,9 +64,9 @@ impl Pod {
     }
 
     /// Removes the value of specific key from Pod::Hash and returns it or null if not exists.
-    pub fn remove(&mut self, key: &'static str) -> Pod {
+    pub fn remove(&mut self, key: String) -> Pod {
         match *self {
-            Pod::Hash(ref mut hash) => hash.remove(key).unwrap_or(Pod::Null),
+            Pod::Hash(ref mut hash) => hash.remove(key.as_str()).unwrap_or(Pod::Null),
             _ => Pod::Null,
         }
     }
@@ -200,19 +200,19 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
     let mut a = Pod::new_hash();
     let mut b = a.clone();
     assert_eq!(true, a == b);
-    a.insert("hello", Pod::String("world".into()))?;
-    b.insert("hello", Pod::String("world".into()))?;
+    a.insert("hello".to_string(), Pod::String("world".into()))?;
+    b.insert("hello".to_string(), Pod::String("world".into()))?;
     assert_eq!(true, a == b);
-    a.insert("map", a.clone())?;
-    b.insert("map", b.clone())?;
+    a.insert("map".to_string(), a.clone())?;
+    b.insert("map".to_string(), b.clone())?;
     assert_eq!(true, a == b);
-    a.insert("boolean", Pod::Boolean(true))?;
-    b.insert("boolean", Pod::Boolean(false))?;
+    a.insert("boolean".to_string(), Pod::Boolean(true))?;
+    b.insert("boolean".to_string(), Pod::Boolean(false))?;
     assert_eq!(false, a == b);
-    assert_eq!(true, a.remove("boolean") == Pod::Boolean(true));
-    assert_eq!(true, b.remove("boolean") == Pod::Boolean(false));
+    assert_eq!(true, a.remove("boolean".to_string()) == Pod::Boolean(true));
+    assert_eq!(true, b.remove("boolean".to_string()) == Pod::Boolean(false));
     assert_eq!(true, a == b);
-    b.insert("hello", Pod::String("world!".into()))?;
+    b.insert("hello".to_string(), Pod::String("world!".into()))?;
     assert_eq!(false, a == b);
     Ok(())
 }

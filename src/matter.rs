@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::entity::ParsedEntity;
+use crate::value::pod::Pod;
 use regex::Regex;
 
 pub struct Matter<T: Engine> {
@@ -24,9 +25,9 @@ impl<T: Engine> Matter<T> {
     /// let input = "---\ntitle: Home\n---\nOther stuff";
     /// let parsed_entity =  matter.matter(input);
     /// ```
-    pub fn matter(&self, input: &'static str) -> ParsedEntity<T> {
+    pub fn matter(&self, input: &'static str) -> ParsedEntity {
         let parsed_entity = ParsedEntity {
-            data: self.engine.init_data(),
+            data: Pod::new_hash(),
             content: input,
             excerpt: "",
             orig: input,
@@ -37,7 +38,7 @@ impl<T: Engine> Matter<T> {
         self.parse_matter(parsed_entity)
     }
 
-    fn parse_matter(&self, mut entity: ParsedEntity<T>) -> ParsedEntity<T> {
+    fn parse_matter(&self, mut entity: ParsedEntity) -> ParsedEntity {
         // the orig length should greater than the given delimiter
         if entity.orig.len() <= self.delimiter.len() {
             return entity;
@@ -76,7 +77,7 @@ impl<T: Engine> Matter<T> {
         return entity;
     }
 
-    fn excerpt(&self, entity: &mut ParsedEntity<T>) {
+    fn excerpt(&self, entity: &mut ParsedEntity) {
         let delimiter = if self.excerpt_separator.is_empty() {
             self.delimiter
         } else {

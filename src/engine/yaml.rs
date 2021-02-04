@@ -1,29 +1,57 @@
 use crate::engine::Engine;
-use yaml_rust::yaml::Hash;
+use crate::value::pod::Pod;
 use yaml_rust::{Yaml, YamlLoader};
 
 #[derive(PartialEq, Debug)]
 pub struct YAML {}
 
 impl Engine for YAML {
-    type Output = Yaml;
-
     fn new() -> Self {
         return YAML {};
     }
 
-    fn parse(&self, content: &str) -> Self::Output {
+    fn parse(&self, content: &str) -> Pod {
         match YamlLoader::load_from_str(content) {
-            Ok(docs) => docs[0].clone(),
-            Err(..) => self.init_data(),
+            Ok(docs) => docs[0].clone().into(),
+            Err(..) => Pod::Null,
         }
-    }
-
-    fn init_data(&self) -> Self::Output {
-        return Yaml::Hash(Hash::new());
     }
 }
 
+impl Into<Pod> for Yaml {
+    fn into(self) -> Pod {
+        match self {
+            Yaml::Real(val) => Pod::Number(val.parse::<f64>().unwrap().into()),
+            Yaml::Integer(val) => Pod::Number(val.into()),
+            Yaml::String(val) => Pod::String(val),
+            Yaml::Boolean(val) => Pod::Boolean(val),
+            Yaml::Array(val) => {
+                let mut pod = Pod::new_array();
+                for item in val.into_iter() {
+                    match pod.push(item) {
+                        Ok(_) => {}
+                        Err(_) => {}
+                    };
+                }
+                pod
+            }
+            Yaml::Hash(val) => {
+                let mut pod = Pod::new_hash();
+                for (key, val) in val.into_iter() {
+                    match pod.insert(key.as_str().unwrap().to_string(), val) {
+                        Ok(_) => {}
+                        Err(_) => {}
+                    }
+                }
+                pod
+            }
+            Yaml::Null => Pod::Null,
+            _ => Pod::Null,
+        }
+    }
+}
+
+// todo: add more tests
 #[test]
 fn test_matter() {
     use crate::entity::ParsedEntity;
@@ -36,12 +64,11 @@ Some excerpt
 ---
 Other stuff"#;
 
-    let mut hash_map = Hash::new();
-    hash_map.insert(
-        Yaml::String("title".to_string()),
-        Yaml::String("Home".to_string()),
-    );
-    let data = Yaml::Hash(hash_map);
+    let mut data = Pod::new_hash();
+    match data.insert("title".to_string(), Pod::String("Home".to_string())) {
+        Ok(_) => {}
+        Err(err) => panic!(err),
+    };
     let parsed_entity = ParsedEntity {
         data,
         content: "Some excerpt\n---\nOther stuff",

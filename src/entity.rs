@@ -1,9 +1,9 @@
-use crate::engine::Engine;
+use crate::value::pod::Pod;
 
 /// **ParsedEntity** stores the parse result.
 #[derive(PartialEq, Debug)]
-pub struct ParsedEntity<T: Engine> {
-    pub data: T::Output,
+pub struct ParsedEntity {
+    pub data: Pod,
     pub content: &'static str,
     pub excerpt: &'static str,
     pub orig: &'static str,

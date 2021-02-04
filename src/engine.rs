@@ -1,9 +1,9 @@
+use crate::value::pod::Pod;
+
 pub mod json;
 pub mod yaml;
 
 pub trait Engine {
-    type Output;
     fn new() -> Self;
-    fn parse(&self, content: &str) -> Self::Output;
-    fn init_data(&self) -> Self::Output;
+    fn parse(&self, content: &str) -> Pod;
 }
