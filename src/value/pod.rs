@@ -152,6 +152,8 @@ impl IndexMut<String> for Pod {
     }
 }
 
+// todo: feat: ability to get len of Pod::Array and Pod::Hash
+
 #[test]
 fn test_partial_compare_null() -> std::result::Result<(), Error> {
     assert_eq!(true, Pod::Null == Pod::Null);
@@ -200,19 +202,19 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
     let mut a = Pod::new_hash();
     let mut b = a.clone();
     assert_eq!(true, a == b);
-    a.insert("hello".to_string(), Pod::String("world".into()))?;
-    b.insert("hello".to_string(), Pod::String("world".into()))?;
+    a["hello"] = Pod::String("world".into());
+    b["hello"] = Pod::String("world".into());
     assert_eq!(true, a == b);
-    a.insert("map".to_string(), a.clone())?;
-    b.insert("map".to_string(), b.clone())?;
+    a["map"] = a.clone();
+    b["map"] = b.clone();
     assert_eq!(true, a == b);
-    a.insert("boolean".to_string(), Pod::Boolean(true))?;
-    b.insert("boolean".to_string(), Pod::Boolean(false))?;
+    a["boolean"] = Pod::Boolean(true);
+    b["boolean"] = Pod::Boolean(false);
     assert_eq!(false, a == b);
     assert_eq!(true, a.remove("boolean".to_string()) == Pod::Boolean(true));
     assert_eq!(true, b.remove("boolean".to_string()) == Pod::Boolean(false));
     assert_eq!(true, a == b);
-    b.insert("hello".to_string(), Pod::String("world!".into()))?;
+    b["hello"] = Pod::String("world!".into());
     assert_eq!(false, a == b);
     Ok(())
 }

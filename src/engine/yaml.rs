@@ -27,21 +27,15 @@ impl Into<Pod> for Yaml {
             Yaml::Boolean(val) => Pod::Boolean(val),
             Yaml::Array(val) => {
                 let mut pod = Pod::new_array();
-                for item in val.into_iter() {
-                    match pod.push(item) {
-                        Ok(_) => {}
-                        Err(_) => {}
-                    };
+                for (index, item) in val.into_iter().enumerate() {
+                    pod[index] = item.into();
                 }
                 pod
             }
             Yaml::Hash(val) => {
                 let mut pod = Pod::new_hash();
                 for (key, val) in val.into_iter() {
-                    match pod.insert(key.as_str().unwrap().to_string(), val) {
-                        Ok(_) => {}
-                        Err(_) => {}
-                    }
+                    pod[key.as_str().unwrap()] = val.into();
                 }
                 pod
             }
@@ -65,10 +59,7 @@ Some excerpt
 Other stuff"#;
 
     let mut data = Pod::new_hash();
-    match data.insert("title".to_string(), Pod::String("Home".to_string())) {
-        Ok(_) => {}
-        Err(err) => panic!(err),
-    };
+    data["title"] = Pod::String("Home".to_string());
     let parsed_entity = ParsedEntity {
         data,
         content: "Some excerpt\n---\nOther stuff",

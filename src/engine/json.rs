@@ -35,21 +35,15 @@ impl Into<Pod> for JsonValue {
             JsonValue::Boolean(val) => Pod::Boolean(val),
             JsonValue::Array(val) => {
                 let mut pod = Pod::new_array();
-                for item in val.into_iter() {
-                    match pod.push(item) {
-                        Ok(_) => {}
-                        Err(_) => {}
-                    };
+                for (index, item) in val.into_iter().enumerate() {
+                    pod[index] = item.into();
                 }
                 pod
             }
             JsonValue::Object(val) => {
                 let mut pod = Pod::new_hash();
                 for (key, val) in val.iter() {
-                    match pod.insert(key.to_string(), (*val).clone()) {
-                        Ok(_) => {}
-                        Err(_) => {}
-                    }
+                    pod[key] = (*val).clone().into();
                 }
                 pod
             }
@@ -71,10 +65,7 @@ Some excerpt
 Other stuff"#;
 
     let mut data = Pod::new_hash();
-    match data.insert("title".to_string(), Pod::String("Home".to_string())) {
-        Ok(_) => {}
-        Err(err) => panic!(err),
-    };
+    data["title"] = Pod::String("Home".to_string());
     let parsed_entity = ParsedEntity {
         data,
         content: "Some excerpt\n---\nOther stuff",
