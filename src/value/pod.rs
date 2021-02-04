@@ -6,7 +6,7 @@ use std::ops::{Index, IndexMut};
 
 type IResult<T> = Result<T, Error>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Pod {
     Null,
     String(String),
@@ -14,20 +14,6 @@ pub enum Pod {
     Boolean(bool),
     Array(Vec<Pod>),
     Hash(HashMap<String, Pod>),
-}
-
-impl PartialEq for Pod {
-    fn eq(&self, other: &Self) -> bool {
-        use self::Pod::*;
-        match (self, other) {
-            (&Null, &Null) => true,
-            (&String(ref a), &String(ref b)) => a == b,
-            (&Boolean(ref a), &Boolean(ref b)) => a == b,
-            (&Array(ref a), &Array(ref b)) => a == b,
-            (&Hash(ref a), &Hash(ref b)) => a == b,
-            _ => false,
-        }
-    }
 }
 
 static NULL: Pod = Pod::Null;
@@ -128,12 +114,14 @@ impl IndexMut<usize> for Pod {
 impl<'a> Index<&'a str> for Pod {
     type Output = Pod;
 
+    /// Easily access value of Pod::Hash by &str index
     fn index(&self, index: &'a str) -> &Self::Output {
         self.index(index.to_string())
     }
 }
 
 impl<'a> IndexMut<&'a str> for Pod {
+    /// Easily access mutable value of Pod::Hash by &str index
     fn index_mut(&mut self, index: &'a str) -> &mut Self::Output {
         self.index_mut(index.to_string())
     }
@@ -142,6 +130,7 @@ impl<'a> IndexMut<&'a str> for Pod {
 impl Index<String> for Pod {
     type Output = Pod;
 
+    /// Easily access value of Pod::Hash by String index
     fn index(&self, index: String) -> &Self::Output {
         match *self {
             Pod::Hash(ref hash) => &hash[&index],
@@ -151,6 +140,7 @@ impl Index<String> for Pod {
 }
 
 impl IndexMut<String> for Pod {
+    /// Easily access value of Pod::Hash by String index
     fn index_mut(&mut self, index: String) -> &mut Self::Output {
         match *self {
             Pod::Hash(ref mut hash) => hash.entry(index).or_insert(Pod::Null),
@@ -161,9 +151,6 @@ impl IndexMut<String> for Pod {
         }
     }
 }
-
-// todo: impl trait PartialEq for Number
-// todo: impl trait Into<T: Pod> for Number
 
 #[test]
 fn test_partial_compare_null() -> std::result::Result<(), Error> {
@@ -227,6 +214,14 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
     assert_eq!(true, a == b);
     b.insert("hello", Pod::String("world!".into()))?;
     assert_eq!(false, a == b);
+    Ok(())
+}
+
+#[test]
+fn test_partial_compare_number() -> std::result::Result<(), Error> {
+    let a = Pod::Number(16.into());
+    let b = Pod::Number(16.into());
+    assert_eq!(true, a == b);
     Ok(())
 }
 
