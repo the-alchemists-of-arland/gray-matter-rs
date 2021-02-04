@@ -1,6 +1,8 @@
 use crate::value::error::Error;
 use crate::value::number::Number;
 use std::collections::HashMap;
+use std::mem;
+use std::ops::{Index, IndexMut};
 
 type IResult<T> = Result<T, Error>;
 
@@ -11,7 +13,7 @@ pub enum Pod {
     Number(Number),
     Boolean(bool),
     Array(Vec<Pod>),
-    Hash(HashMap<&'static str, Pod>),
+    Hash(HashMap<String, Pod>),
 }
 
 impl PartialEq for Pod {
@@ -27,6 +29,8 @@ impl PartialEq for Pod {
         }
     }
 }
+
+static NULL: Pod = Pod::Null;
 
 impl Pod {
     pub fn new_array() -> Pod {
@@ -66,7 +70,7 @@ impl Pod {
     {
         match *self {
             Pod::Hash(ref mut hash) => {
-                hash.insert(key, val.into());
+                hash.insert(key.to_string(), val.into());
                 Ok(())
             }
             _ => Err(Error::type_error("Hash")),
@@ -80,11 +84,84 @@ impl Pod {
             _ => Pod::Null,
         }
     }
+
+    /// Takes the ownership of Pod
+    pub fn take(&mut self) -> Pod {
+        mem::replace(self, Pod::Null)
+    }
 }
 
-// todo: impl trait Index<usize> and IndexMut<usize> for Pod
-// todo: impl trait Index<&'a str> and IndexMut<&'a str> for Pod
-// todo: impl trait Index<'a String> and IndexMut<'a String> for Pod
+impl Index<usize> for Pod {
+    type Output = Pod;
+
+    /// Easily access element of Pod::Array by usize index
+    fn index(&self, index: usize) -> &Self::Output {
+        match *self {
+            Pod::Array(ref vec) => vec.get(index).unwrap_or(&NULL),
+            _ => &NULL,
+        }
+    }
+}
+
+impl IndexMut<usize> for Pod {
+    /// Easily access mutable element of Pod::Array by usize index
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match *self {
+            Pod::Array(ref mut vec) => {
+                let in_bounds = index < vec.len();
+                if in_bounds {
+                    &mut vec[index]
+                } else {
+                    vec.push(Pod::Null);
+                    vec.last_mut().unwrap()
+                }
+            }
+            _ => {
+                *self = Pod::new_array();
+                self.push(Pod::Null).unwrap();
+                self.index_mut(index)
+            }
+        }
+    }
+}
+
+impl<'a> Index<&'a str> for Pod {
+    type Output = Pod;
+
+    fn index(&self, index: &'a str) -> &Self::Output {
+        self.index(index.to_string())
+    }
+}
+
+impl<'a> IndexMut<&'a str> for Pod {
+    fn index_mut(&mut self, index: &'a str) -> &mut Self::Output {
+        self.index_mut(index.to_string())
+    }
+}
+
+impl Index<String> for Pod {
+    type Output = Pod;
+
+    fn index(&self, index: String) -> &Self::Output {
+        match *self {
+            Pod::Hash(ref hash) => &hash[&index],
+            _ => &NULL,
+        }
+    }
+}
+
+impl IndexMut<String> for Pod {
+    fn index_mut(&mut self, index: String) -> &mut Self::Output {
+        match *self {
+            Pod::Hash(ref mut hash) => hash.entry(index).or_insert(Pod::Null),
+            _ => {
+                *self = Pod::new_hash();
+                self.index_mut(index)
+            }
+        }
+    }
+}
+
 // todo: impl trait PartialEq for Number
 // todo: impl trait Into<T: Pod> for Number
 
@@ -150,5 +227,45 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
     assert_eq!(true, a == b);
     b.insert("hello", Pod::String("world!".into()))?;
     assert_eq!(false, a == b);
+    Ok(())
+}
+
+#[test]
+fn test_index_usize() -> std::result::Result<(), Error> {
+    let mut a = Pod::new_array();
+    a[0] = Pod::String("hello".into());
+    a[1] = Pod::Boolean(true);
+    let b = a.clone();
+    assert_eq!(true, b[0] == Pod::String("hello".into()));
+    assert_eq!(true, b[1] == Pod::Boolean(true));
+    let mut string = a[0].take();
+    string[0] = Pod::String("world".to_string());
+    assert_eq!(
+        true,
+        string == Pod::Array(vec![Pod::String("world".to_string())])
+    );
+    Ok(())
+}
+
+#[test]
+fn test_index_str() -> std::result::Result<(), Error> {
+    let mut a = Pod::new_hash();
+    a["hello"] = Pod::String("world".into());
+    a["bool"] = Pod::Boolean(false);
+    let b = a.clone();
+    assert_eq!(true, a["hello"] == b["hello"]);
+    assert_eq!(true, a["bool"] == b["bool"]);
+    let mut string = a["hello"].take();
+    string["world"] = Pod::String("world".to_string());
+
+    assert_eq!(
+        true,
+        string
+            == Pod::Hash(
+                vec![("world".to_string(), Pod::String("world".to_string()))]
+                    .into_iter()
+                    .collect()
+            )
+    );
     Ok(())
 }
