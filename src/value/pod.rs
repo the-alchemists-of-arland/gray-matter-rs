@@ -84,6 +84,50 @@ impl Pod {
             _ => 0,
         }
     }
+
+    pub fn as_string(&self) -> Result<String, Error> {
+        match *self {
+            Pod::String(ref value) => Ok(value.clone()),
+            _ => Err(Error::type_error("String")),
+        }
+    }
+
+    pub fn as_i64(&self) -> Result<i64, Error> {
+        match *self {
+            Pod::Integer(ref value) => Ok(*value),
+            _ => Err(Error::type_error("Integer")),
+        }
+    }
+
+    pub fn as_f64(&self) -> Result<f64, Error> {
+        match *self {
+            Pod::Float(ref value) => Ok(*value),
+            _ => Err(Error::type_error("Float")),
+        }
+    }
+
+    pub fn as_bool(&self) -> Result<bool, Error> {
+        match *self {
+            Pod::Boolean(ref value) => Ok(*value),
+            _ => Err(Error::type_error("Boolean")),
+        }
+    }
+
+    pub fn as_vec(&self) -> Result<Vec<Pod>, Error> {
+        match *self {
+            Pod::Array(ref value) => Ok(value.clone()),
+            _ => Err(Error::type_error("Array")),
+        }
+    }
+
+    pub fn as_hashmap(&self) -> Result<HashMap<String, Pod>, Error> {
+        match *self {
+            Pod::Hash(ref value) => Ok(value.clone()),
+            _ => Err(Error::type_error("Hash")),
+        }
+    }
+    // todo: impl trait Into<String, i64, f64, bool, vec, hashmap> for pod
+    // todo: impl trait Deserializer for pod
 }
 
 impl Index<usize> for Pod {

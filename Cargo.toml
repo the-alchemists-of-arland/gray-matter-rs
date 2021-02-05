@@ -1,5 +1,5 @@
 [package]
-name = "gray-matter"
+name = "gray_matter"
 version = "0.1.0"
 authors = ["yuchanns <airamusume@gmail.com>"]
 edition = "2018"
