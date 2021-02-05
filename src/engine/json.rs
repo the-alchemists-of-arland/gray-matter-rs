@@ -1,5 +1,4 @@
 use crate::engine::Engine;
-use crate::value::number::Number;
 use crate::value::pod::Pod;
 use json::JsonValue;
 
@@ -25,13 +24,14 @@ impl Into<Pod> for JsonValue {
             JsonValue::Null => Pod::Null,
             JsonValue::Short(val) => Pod::String(val.as_str().to_string()),
             JsonValue::String(val) => Pod::String(val),
-            JsonValue::Number(_) => match self.as_f64() {
-                Some(number) => Pod::Number(Number::from(number)),
-                None => match self.as_isize() {
-                    Some(number) => Pod::Number(Number::from(number)),
-                    None => Pod::Number(Number::from(0)),
-                },
-            },
+            JsonValue::Number(val) => {
+                let val_string = val.to_string();
+                if val_string.contains(".") {
+                    Pod::Float(val_string.parse().unwrap_or(0 as f64))
+                } else {
+                    Pod::Integer(val_string.parse().unwrap_or(0))
+                }
+            }
             JsonValue::Boolean(val) => Pod::Boolean(val),
             JsonValue::Array(val) => {
                 let mut pod = Pod::new_array();

@@ -22,8 +22,8 @@ impl Into<Pod> for TomlValue {
     fn into(self) -> Pod {
         match self {
             TomlValue::String(val) => Pod::String(val),
-            TomlValue::Integer(val) => Pod::Number(val.into()),
-            TomlValue::Float(val) => Pod::Number(val.into()),
+            TomlValue::Integer(val) => Pod::Integer(val),
+            TomlValue::Float(val) => Pod::Float(val),
             TomlValue::Boolean(val) => Pod::Boolean(val),
             TomlValue::Array(val) => {
                 let mut pod = Pod::new_array();

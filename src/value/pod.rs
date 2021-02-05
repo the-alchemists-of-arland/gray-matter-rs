@@ -1,5 +1,4 @@
 use crate::value::error::Error;
-use crate::value::number::Number;
 use std::collections::HashMap;
 use std::mem;
 use std::ops::{Index, IndexMut};
@@ -10,7 +9,8 @@ type IResult<T> = Result<T, Error>;
 pub enum Pod {
     Null,
     String(String),
-    Number(Number),
+    Integer(i64),
+    Float(f64),
     Boolean(bool),
     Array(Vec<Pod>),
     Hash(HashMap<String, Pod>),
@@ -227,9 +227,17 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_partial_compare_number() -> std::result::Result<(), Error> {
-    let a = Pod::Number(16.into());
-    let b = Pod::Number(16.into());
+fn test_partial_compare_integer() -> std::result::Result<(), Error> {
+    let a = Pod::Integer(16);
+    let b = Pod::Integer(16);
+    assert_eq!(true, a == b);
+    Ok(())
+}
+
+#[test]
+fn test_partial_compare_float() -> std::result::Result<(), Error> {
+    let a = Pod::Float(16.01);
+    let b = Pod::Float(16.01);
     assert_eq!(true, a == b);
     Ok(())
 }

@@ -21,8 +21,8 @@ impl Engine for YAML {
 impl Into<Pod> for Yaml {
     fn into(self) -> Pod {
         match self {
-            Yaml::Real(val) => Pod::Number(val.parse::<f64>().unwrap().into()),
-            Yaml::Integer(val) => Pod::Number(val.into()),
+            Yaml::Real(val) => Pod::Float(val.parse().unwrap_or(0 as f64)),
+            Yaml::Integer(val) => Pod::Integer(val),
             Yaml::String(val) => Pod::String(val),
             Yaml::Boolean(val) => Pod::Boolean(val),
             Yaml::Array(val) => {
