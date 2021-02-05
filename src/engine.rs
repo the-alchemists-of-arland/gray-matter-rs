@@ -1,6 +1,7 @@
 use crate::value::pod::Pod;
 
 pub mod json;
+pub mod toml;
 pub mod yaml;
 
 pub trait Engine {

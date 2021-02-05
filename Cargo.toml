@@ -9,4 +9,5 @@ edition = "2018"
 [dependencies]
 json = "0.12.4"
 regex = "1.4.3"
+toml = "0.5.8"
 yaml-rust = "0.4.5"
