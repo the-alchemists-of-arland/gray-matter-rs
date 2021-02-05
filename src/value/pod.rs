@@ -75,6 +75,15 @@ impl Pod {
     pub fn take(&mut self) -> Pod {
         mem::replace(self, Pod::Null)
     }
+
+    /// Returns length of Pod::Array and Pod::Hash, 0 as default for other types.
+    pub fn len(&self) -> usize {
+        match *self {
+            Pod::Array(ref value) => value.len(),
+            Pod::Hash(ref value) => value.len(),
+            _ => 0,
+        }
+    }
 }
 
 impl Index<usize> for Pod {
@@ -152,8 +161,6 @@ impl IndexMut<String> for Pod {
     }
 }
 
-// todo: feat: ability to get len of Pod::Array and Pod::Hash
-
 #[test]
 fn test_partial_compare_null() -> std::result::Result<(), Error> {
     assert_eq!(true, Pod::Null == Pod::Null);
@@ -224,6 +231,19 @@ fn test_partial_compare_number() -> std::result::Result<(), Error> {
     let a = Pod::Number(16.into());
     let b = Pod::Number(16.into());
     assert_eq!(true, a == b);
+    Ok(())
+}
+
+#[test]
+fn test_len_of_pod() -> std::result::Result<(), Error> {
+    let mut a = Pod::new_array();
+    a[0] = Pod::String("hello".into());
+    assert_eq!(true, a.len() == 1);
+    let mut b = Pod::new_hash();
+    b["hello"] = Pod::String("world".into());
+    b["boolean"] = Pod::Boolean(true);
+    assert_eq!(true, b.len() == 2);
+    assert_eq!(true, Pod::String("hello".into()).len() == 0);
     Ok(())
 }
 
