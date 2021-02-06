@@ -126,8 +126,79 @@ impl Pod {
             _ => Err(Error::type_error("Hash")),
         }
     }
-    // todo: impl trait Into<String, i64, f64, bool, vec, hashmap> for pod
     // todo: impl trait Deserializer for pod
+}
+
+impl Into<String> for Pod {
+    fn into(self) -> String {
+        self.as_string().unwrap()
+    }
+}
+
+impl Into<i64> for Pod {
+    fn into(self) -> i64 {
+        self.as_i64().unwrap()
+    }
+}
+
+impl Into<f64> for Pod {
+    fn into(self) -> f64 {
+        self.as_f64().unwrap()
+    }
+}
+
+impl Into<bool> for Pod {
+    fn into(self) -> bool {
+        self.as_bool().unwrap()
+    }
+}
+
+impl Into<Vec<Pod>> for Pod {
+    fn into(self) -> Vec<Pod> {
+        self.as_vec().unwrap()
+    }
+}
+
+impl Into<HashMap<String, Pod>> for Pod {
+    fn into(self) -> HashMap<String, Pod> {
+        self.as_hashmap().unwrap()
+    }
+}
+
+impl From<i64> for Pod {
+    fn from(val: i64) -> Self {
+        Pod::Integer(val)
+    }
+}
+
+impl From<f64> for Pod {
+    fn from(val: f64) -> Self {
+        Pod::Float(val)
+    }
+}
+
+impl From<String> for Pod {
+    fn from(val: String) -> Self {
+        Pod::String(val)
+    }
+}
+
+impl From<bool> for Pod {
+    fn from(val: bool) -> Self {
+        Pod::Boolean(val)
+    }
+}
+
+impl From<Vec<Pod>> for Pod {
+    fn from(val: Vec<Pod>) -> Self {
+        Pod::Array(val)
+    }
+}
+
+impl From<HashMap<String, Pod>> for Pod {
+    fn from(val: HashMap<String, Pod>) -> Self {
+        Pod::Hash(val)
+    }
 }
 
 impl Index<usize> for Pod {
@@ -336,5 +407,26 @@ fn test_index_str() -> std::result::Result<(), Error> {
                     .collect()
             )
     );
+    Ok(())
+}
+
+#[test]
+fn test_pod_from_into() -> std::result::Result<(), Error> {
+    let a: String = Pod::from("hello".to_string()).into();
+    assert_eq!(true, a == String::from("hello"));
+    let b: i64 = Pod::from(1).into();
+    assert_eq!(true, b == 1);
+    let c: f64 = Pod::from(2.33).into();
+    assert_eq!(true, c == 2.33);
+    let d: bool = Pod::from(true).into();
+    assert_eq!(true, d == true);
+    let e_i = vec![Pod::String("hello".to_string())];
+    let e: Vec<Pod> = Pod::from(e_i.clone()).into();
+    assert_eq!(true, e == e_i);
+    let f_i = vec![("hello".to_string(), Pod::String("world".to_string()))]
+        .into_iter()
+        .collect::<HashMap<String, Pod>>();
+    let f: HashMap<String, Pod> = Pod::from(f_i.clone()).into();
+    assert_eq!(true, f == f_i);
     Ok(())
 }
