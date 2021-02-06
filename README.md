@@ -3,7 +3,7 @@
 
 A rust implementation of [gray-matter](https://github.com/jonschlinkert/gray-matter).
 
-**Support Parser**
+**Support Parsers**
 * toml
 * yaml
 * json
@@ -21,6 +21,7 @@ gray-matter = "0.1"
 ```rust
 use gray_matter::matter::Matter;
 use gray_matter::engine::yaml::YAML;
+use serde::Deserialize;
 
 fn main() {
     // select one parser engine, such as YAML
@@ -45,5 +46,13 @@ Other stuff"#;
     // title: "gray-matter-rs"
     // tags[0]: "gray-matter"
     // tags[1]: "rust"
+    #[derive(Deserialize, Debug)]
+    struct FrontMatter {
+        title: String,
+        tags: Vec<String>
+    }
+    let front_matter: FrontMatter = result.data.deserialize().unwrap();
+    println!("{:?}", front_matter);
+    // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
 }
 ```

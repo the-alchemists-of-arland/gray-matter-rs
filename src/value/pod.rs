@@ -1,4 +1,5 @@
 use crate::value::error::Error;
+use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::mem;
 use std::ops::{Index, IndexMut};
@@ -126,7 +127,14 @@ impl Pod {
             _ => Err(Error::type_error("Hash")),
         }
     }
-    // todo: impl trait Deserializer for pod
+
+    /// Deserialize Pod into struct by serde_json.
+    pub fn deserialize<T: DeserializeOwned>(&self) -> serde_json::Result<T> {
+        use serde_json::{from_value, Value};
+        let value: Value = self.clone().into();
+        let ret: T = from_value(value)?;
+        Ok(ret)
+    }
 }
 
 impl Into<String> for Pod {
@@ -271,6 +279,35 @@ impl IndexMut<String> for Pod {
             _ => {
                 *self = Pod::new_hash();
                 self.index_mut(index)
+            }
+        }
+    }
+}
+
+impl Into<serde_json::Value> for Pod {
+    fn into(self) -> serde_json::Value {
+        use serde_json::json;
+        use serde_json::Value::*;
+        match self {
+            Pod::Null => Null,
+            Pod::String(val) => json!(val),
+            Pod::Integer(val) => json!(val),
+            Pod::Float(val) => json!(val),
+            Pod::Boolean(val) => json!(val),
+            Pod::Array(val) => {
+                let mut vec: Vec<serde_json::Value> = vec![];
+                for item in val.into_iter() {
+                    vec.push(item.into());
+                }
+                Array(vec)
+            }
+            Pod::Hash(val) => {
+                use serde_json::Map;
+                let mut hash = Map::new();
+                for (key, value) in val.into_iter() {
+                    hash.insert(key, value.into());
+                }
+                Object(hash)
             }
         }
     }
@@ -428,5 +465,25 @@ fn test_pod_from_into() -> std::result::Result<(), Error> {
         .collect::<HashMap<String, Pod>>();
     let f: HashMap<String, Pod> = Pod::from(f_i.clone()).into();
     assert_eq!(true, f == f_i);
+    Ok(())
+}
+
+#[test]
+fn test_pod_deserialize() -> std::result::Result<(), Error> {
+    use serde::Deserialize;
+    #[derive(Deserialize, PartialEq)]
+    struct Config {
+        title: String,
+        tags: Vec<String>,
+    }
+    let mut pod = Pod::new_hash();
+    pod["title"] = Pod::String("hello".to_string());
+    pod["tags"] = Pod::Array(vec![Pod::String("gray-matter-rust".to_string())]);
+    let cfg: Config = pod.deserialize()?;
+    let cfg_expected = Config {
+        title: "hello".to_string(),
+        tags: vec!["gray-matter-rust".to_string()],
+    };
+    assert_eq!(true, cfg == cfg_expected);
     Ok(())
 }
