@@ -54,5 +54,8 @@ Other stuff"#;
     let front_matter: FrontMatter = result.data.deserialize().unwrap();
     println!("{:?}", front_matter);
     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
+    let result_with_struct: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input);
+    println!("{:?}", result_with_struct.data)
+    // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
 }
 ```

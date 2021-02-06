@@ -8,3 +8,12 @@ pub struct ParsedEntity {
     pub excerpt: &'static str,
     pub orig: &'static str,
 }
+
+/// **ParsedEntity** stores the parse result and deserialize data to struct.
+#[derive(PartialEq, Debug)]
+pub struct ParsedEntityStruct<T: serde::de::DeserializeOwned> {
+    pub data: T,
+    pub content: &'static str,
+    pub excerpt: &'static str,
+    pub orig: &'static str,
+}

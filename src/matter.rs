@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use crate::entity::ParsedEntity;
+use crate::entity::{ParsedEntity, ParsedEntityStruct};
 use crate::value::pod::Pod;
 use regex::Regex;
 
@@ -16,6 +16,20 @@ impl<T: Engine> Matter<T> {
             excerpt_separator: "---",
             engine: T::new(),
         };
+    }
+
+    pub fn matter_struct<D: serde::de::DeserializeOwned>(
+        &self,
+        input: &'static str,
+    ) -> ParsedEntityStruct<D> {
+        let parsed_entity = self.matter(input);
+        let data: D = parsed_entity.data.deserialize().unwrap();
+        ParsedEntityStruct {
+            data,
+            content: parsed_entity.content,
+            excerpt: parsed_entity.excerpt,
+            orig: parsed_entity.orig,
+        }
     }
 
     /// **matter** takes a &str, extracts and parses front-matter from it,
