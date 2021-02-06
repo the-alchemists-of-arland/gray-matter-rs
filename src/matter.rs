@@ -77,17 +77,14 @@ impl<T: Engine> Matter<T> {
             self.excerpt(&mut entity);
             return entity;
         }
-        if entity.orig[3..4] == self.delimiter[0..1] {
+        // check if this is not a delimiter
+        if entity.orig[self.delimiter.len()..self.delimiter.len() + 1] == self.delimiter[0..1] {
             return entity;
         }
         // strip the opening delimiter
         let stripped = &entity.orig[self.delimiter.len()..];
         // check if close delimiter exists
-        // if not, the full stripped content is the front matter
-        let close_index = match stripped.find(self.delimiter) {
-            Some(index) => index,
-            None => stripped.len(),
-        };
+        let close_index = self.match_close_index(stripped, 0);
         let (raw_matter, rest) = stripped.split_at(close_index);
         let re = Regex::new(r"^\s*#[^\n]+").unwrap();
         let block = re.replace_all(raw_matter, "").into_owned();
@@ -108,6 +105,31 @@ impl<T: Engine> Matter<T> {
             entity.content = "".to_string();
         }
         return entity;
+    }
+
+    /// match_close_index will try to find close_index and ignore string looks like the delimiter
+    /// if close_index is not exists, consider the full content is the front matter
+    fn match_close_index(&self, content: &str, accmululate: usize) -> usize {
+        match content.find(self.delimiter) {
+            Some(index) => {
+                let delimiter_end_index = index + self.delimiter.len();
+                if content.len() > delimiter_end_index {
+                    // check if this is real close_index
+                    if content[delimiter_end_index..delimiter_end_index + 1].starts_with("\n") {
+                        accmululate + index
+                    } else {
+                        // not a real close_index, just a string looks like the delimiter
+                        // strip the string and continue to find next one
+                        let stripped = &content[delimiter_end_index..];
+                        // the return index should add delimiter_end_index since the content passed is stripped
+                        self.match_close_index(stripped, delimiter_end_index + accmululate)
+                    }
+                } else {
+                    accmululate + index
+                }
+            }
+            None => accmululate + content.len(),
+        }
     }
 
     fn excerpt(&self, entity: &mut ParsedEntity) {

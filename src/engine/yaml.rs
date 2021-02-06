@@ -12,7 +12,13 @@ impl Engine for YAML {
 
     fn parse(&self, content: &str) -> Pod {
         match YamlLoader::load_from_str(content) {
-            Ok(docs) => docs[0].clone().into(),
+            Ok(docs) => {
+                let mut doc = Pod::Null;
+                if docs.len() > 0 {
+                    doc = docs[0].clone().into();
+                }
+                doc
+            }
             Err(..) => Pod::Null,
         }
     }
