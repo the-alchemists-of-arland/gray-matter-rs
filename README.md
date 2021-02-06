@@ -15,7 +15,7 @@ Append this crate to the `Cargo.toml`:
 ```toml
 [dependencies]
 # other dependencies...
-gray-matter = "0.1"
+gray_matter = "0.1"
 ```
 ### Parse
 ```rust
