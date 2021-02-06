@@ -29,14 +29,14 @@ impl<T: Engine> Matter<T> {
     ///     title: String,
     /// }
     /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff";
+    /// let input = "---\ntitle: Home\n---\nOther stuff".to_string();
     /// let parsed_entity: ParsedEntityStruct<Config> =  matter.matter_struct(input);
     /// ```
     pub fn matter_struct<D: serde::de::DeserializeOwned>(
         &self,
-        input: &'static str,
+        input: String,
     ) -> ParsedEntityStruct<D> {
-        let parsed_entity = self.matter(input);
+        let parsed_entity = self.matter(input.clone());
         let data: D = parsed_entity.data.deserialize().unwrap();
         ParsedEntityStruct {
             data,
@@ -52,15 +52,15 @@ impl<T: Engine> Matter<T> {
     /// # use gray_matter::matter::Matter;
     /// # use gray_matter::engine::yaml::YAML;
     /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff";
+    /// let input = "---\ntitle: Home\n---\nOther stuff".to_string();
     /// let parsed_entity =  matter.matter(input);
     /// ```
-    pub fn matter(&self, input: &'static str) -> ParsedEntity {
+    pub fn matter(&self, input: String) -> ParsedEntity {
         let parsed_entity = ParsedEntity {
             data: Pod::new_hash(),
-            content: input,
-            excerpt: "",
-            orig: input,
+            content: input.clone(),
+            excerpt: String::new(),
+            orig: input.clone(),
         };
         if input.is_empty() {
             return parsed_entity;
@@ -101,8 +101,11 @@ impl<T: Engine> Matter<T> {
             } else {
                 content
             };
-            entity.content = trim_content;
+            entity.content = trim_content.to_string();
             self.excerpt(&mut entity);
+        } else {
+            // content should be nothing if rest is empty or its length equal to delimiter.
+            entity.content = "".to_string();
         }
         return entity;
     }
@@ -116,7 +119,7 @@ impl<T: Engine> Matter<T> {
         match entity.content.find(delimiter) {
             Some(index) => {
                 if index > 0 {
-                    entity.excerpt = &entity.content[..index].trim();
+                    entity.excerpt = entity.content[..index].trim().to_string();
                 }
             }
             None => {}

@@ -61,10 +61,10 @@ Other stuff"#;
     data["title"] = Pod::String("Home".to_string());
     let parsed_entity = ParsedEntity {
         data,
-        content: "Some excerpt\n---\nOther stuff",
-        excerpt: "Some excerpt",
-        orig: input,
+        content: "Some excerpt\n---\nOther stuff".to_string(),
+        excerpt: "Some excerpt".to_string(),
+        orig: input.to_string(),
     };
 
-    assert_eq!(matter.matter(input), parsed_entity);
+    assert_eq!(matter.matter(input.to_string()), parsed_entity);
 }

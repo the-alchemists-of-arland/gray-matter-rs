@@ -19,4 +19,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
       - name: Run Tests
-        run: cargo test
+        run: cargo tests
