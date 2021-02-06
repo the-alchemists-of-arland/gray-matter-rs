@@ -18,6 +18,20 @@ impl<T: Engine> Matter<T> {
         };
     }
 
+    /// **matter_struct** takes a &str, extracts and parses front-matter from it,
+    /// then returns a ParsedEntityStruct result.
+    /// ```rust
+    /// # use gray_matter::matter::Matter;
+    /// # use gray_matter::engine::yaml::YAML;
+    /// # use gray_matter::entity::ParsedEntityStruct;
+    /// #[derive(serde::Deserialize)]
+    /// struct Config {
+    ///     title: String,
+    /// }
+    /// let matter: Matter<YAML> = Matter::new();
+    /// let input = "---\ntitle: Home\n---\nOther stuff";
+    /// let parsed_entity: ParsedEntityStruct<Config> =  matter.matter_struct(input);
+    /// ```
     pub fn matter_struct<D: serde::de::DeserializeOwned>(
         &self,
         input: &'static str,
@@ -35,7 +49,9 @@ impl<T: Engine> Matter<T> {
     /// **matter** takes a &str, extracts and parses front-matter from it,
     /// then returns a ParsedEntity result.
     /// ```rust
-    /// let matter: gray_matter::matter::Matter<gray_matter::engine::yaml::YAML> = gray_matter::matter::Matter::new();
+    /// # use gray_matter::matter::Matter;
+    /// # use gray_matter::engine::yaml::YAML;
+    /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
     /// let parsed_entity =  matter.matter(input);
     /// ```
