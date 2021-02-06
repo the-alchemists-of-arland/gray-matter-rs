@@ -60,4 +60,4 @@ Other stuff"#;
 }
 ```
 ## Contribution
-If you need more parser engines, just free to create a **PR** to help me complete this crate.
+If you need more parser engines, feel free to create a **PR** to help me complete this crate.
