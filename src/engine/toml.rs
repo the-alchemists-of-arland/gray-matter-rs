@@ -44,27 +44,36 @@ impl Into<Pod> for TomlValue {
     }
 }
 
-// todo: add more tests
-#[test]
-fn test_matter() {
-    use crate::entity::ParsedEntity;
+#[cfg(test)]
+mod test {
+    use crate::engine::toml::TOML;
+    use crate::entity::ParsedEntityStruct;
     use crate::matter::Matter;
-    let matter: Matter<TOML> = Matter::new();
-    let input = r#"---
-title = "Home"
----
-Some excerpt
----
-Other stuff"#;
+    use serde::Deserialize;
 
-    let mut data = Pod::new_hash();
-    data["title"] = Pod::String("Home".to_string());
-    let parsed_entity = ParsedEntity {
-        data,
-        content: "Some excerpt\n---\nOther stuff".to_string(),
-        excerpt: "Some excerpt".to_string(),
-        orig: input.to_string(),
-    };
+    #[test]
+    fn test_matter() {
+        let matter: Matter<TOML> = Matter::new();
+        let input = r#"---
+title = "TOML"
+description = "Front matter"
+categories = "front matter toml"
+---
 
-    assert_eq!(matter.matter(input.to_string()), parsed_entity);
+# This file has toml front matter!
+"#;
+        #[derive(Deserialize, PartialEq)]
+        struct FrontMatter {
+            title: String,
+            description: String,
+            categories: String,
+        }
+        let data_expected = FrontMatter {
+            title: "TOML".to_string(),
+            description: "Front matter".to_string(),
+            categories: "front matter toml".to_string(),
+        };
+        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
+        assert_eq!(true, result.data == data_expected);
+    }
 }

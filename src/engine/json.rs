@@ -51,27 +51,35 @@ impl Into<Pod> for JsonValue {
     }
 }
 
-// todo: add more tests
-#[test]
-fn test_matter() {
-    use crate::entity::ParsedEntity;
+#[cfg(test)]
+mod test {
+    use crate::engine::json::JSON;
+    use crate::entity::ParsedEntityStruct;
     use crate::matter::Matter;
-    let matter: Matter<JSON> = Matter::new();
-    let input = r#"---
-{"title": "Home"}
+    use serde::Deserialize;
+
+    #[test]
+    fn test_matter() {
+        let matter: Matter<JSON> = Matter::new();
+        let input = r#"---
+{
+    "title": "JSON",
+     "description": "Front Matter"
+}
 ---
 Some excerpt
 ---
 Other stuff"#;
-
-    let mut data = Pod::new_hash();
-    data["title"] = Pod::String("Home".to_string());
-    let parsed_entity = ParsedEntity {
-        data,
-        content: "Some excerpt\n---\nOther stuff".to_string(),
-        excerpt: "Some excerpt".to_string(),
-        orig: input.to_string(),
-    };
-
-    assert_eq!(matter.matter(input.to_string()), parsed_entity);
+        #[derive(PartialEq, Deserialize)]
+        struct FrontMatter {
+            title: String,
+            description: String,
+        }
+        let data_expected = FrontMatter {
+            title: "JSON".to_string(),
+            description: "Front Matter".to_string(),
+        };
+        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
+        assert_eq!(true, result.data == data_expected);
+    }
 }

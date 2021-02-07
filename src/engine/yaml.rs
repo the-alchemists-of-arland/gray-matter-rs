@@ -50,28 +50,33 @@ impl Into<Pod> for Yaml {
         }
     }
 }
-
-// todo: add more tests
-#[test]
-fn test_matter() {
-    use crate::entity::ParsedEntity;
+#[cfg(test)]
+mod test {
+    use crate::engine::yaml::YAML;
+    use crate::entity::ParsedEntityStruct;
     use crate::matter::Matter;
-    let matter: Matter<YAML> = Matter::new();
-    let input = r#"---
-title: Home
----
-Some excerpt
----
-Other stuff"#;
+    use serde::Deserialize;
 
-    let mut data = Pod::new_hash();
-    data["title"] = Pod::String("Home".to_string());
-    let parsed_entity = ParsedEntity {
-        data,
-        content: "Some excerpt\n---\nOther stuff".to_string(),
-        excerpt: "Some excerpt".to_string(),
-        orig: input.to_string(),
-    };
-
-    assert_eq!(matter.matter(input.to_string()), parsed_entity);
+    #[test]
+    fn test_matter() {
+        let matter: Matter<YAML> = Matter::new();
+        let input = r#"---
+one: foo
+two: bar
+three: baz
+"#;
+        #[derive(Deserialize, PartialEq)]
+        struct FrontMatter {
+            one: String,
+            two: String,
+            three: String,
+        }
+        let data_expected = FrontMatter {
+            one: "foo".to_string(),
+            two: "bar".to_string(),
+            three: "baz".to_string(),
+        };
+        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
+        assert_eq!(true, result.data == data_expected);
+    }
 }
