@@ -1,0 +1,51 @@
+name: publish
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    container: rust:1.49
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+      - name: Run Tests
+        run: cargo test
+  publish:
+    runs-on: ubuntu-20.04
+    container: rust:1.49
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+          CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
+        name: Get Tag Name
+        with:
+          tagRegex: "v(.*)"
+      - name: Set Package Version
+        env:
+          GIT_TAG_NAME: ${{ steps.tagName.outputs.tag }}
+        run: sed -i 's/version = "0.1.0"/version = "${GIT_TAG_NAME}"/' Cargo.toml
+      - name: Cargo Login
+        run: cargo login $CARGO_TOKEN
+      - name: Cargo Publish Dry Run
+        run: cargo publish --dry-run

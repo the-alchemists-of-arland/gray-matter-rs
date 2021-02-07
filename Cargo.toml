@@ -3,8 +3,15 @@ name = "gray_matter"
 version = "0.1.0"
 authors = ["yuchanns <airamusume@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "Smart front matter parser. An implementation of gray-matter in rust. Parses YAML, JSON, TOML and support for custom parsers."
+homepage = "https://github.com/yuchanns/gray-matter-rs"
+repository = "https://github.com/yuchanns/gray-matter-rs"
+readme = "README.md"
+keywords = ["markdown", "matter", "yaml", "toml", "json", "data", "parse", "frontmatter", "front-matter", "gray-matter", "front-matter-parsers"]
+exclude = [
+    ".github/*"
+]
 
 [dependencies]
 json = "0.12.4"
