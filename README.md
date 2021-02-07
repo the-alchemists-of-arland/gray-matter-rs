@@ -1,5 +1,7 @@
 # gray-matter-rs
 ![](https://github.com/yuchanns/gray-matter-rs/workflows/main/badge.svg?branch=main)
+[![Latest Version](https://img.shields.io/crates/v/gray_matter.svg)](https://crates.io/crates/gray_matter)
+[![Documentation](https://docs.rs/gray_matter/badge.svg)](https://docs.rs/gray_matter)
 
 A rust implementation of [gray-matter](https://github.com/jonschlinkert/gray-matter).
 
@@ -21,6 +23,7 @@ gray_matter = "0.1"
 ```rust
 use gray_matter::matter::Matter;
 use gray_matter::engine::yaml::YAML;
+use gray_matter::entity::ParsedEntityStruct;
 use serde::Deserialize;
 
 fn main() {
@@ -57,6 +60,26 @@ Other stuff"#;
     let result_with_struct: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input);
     println!("{:?}", result_with_struct.data)
     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
+}
+```
+### Custom Delimiters
+```rust
+use gray_matter::matter::Matter;
+use gray_matter::engine::yaml::YAML;
+use gray_matter::entity::ParsedEntityStruct;
+use serde::Deserialize;
+
+fn main() {
+    let mut matter: Matter<YAML> = Matter::new();
+    matter.delimiter = "~~~";
+    matter.excerpt_separator = "<!-- endexcerpt -->";
+    #[derive(Deserialize, Debug)]
+    struct FrontMatter {
+        abc: String,
+    }
+    let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(
+        "~~~\nabc: xyz\n~~~\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent".to_string(),
+    );
 }
 ```
 ## Contribution

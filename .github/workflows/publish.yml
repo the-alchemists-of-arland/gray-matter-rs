@@ -49,3 +49,5 @@ jobs:
         run: cargo login $CARGO_TOKEN
       - name: Cargo Publish Dry Run
         run: cargo publish --dry-run
+      - name: Cargo Publish
+        run: cargo publish
