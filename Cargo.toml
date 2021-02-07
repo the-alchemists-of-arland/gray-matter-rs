@@ -8,7 +8,7 @@ description = "Smart front matter parser. An implementation of gray-matter in ru
 homepage = "https://github.com/yuchanns/gray-matter-rs"
 repository = "https://github.com/yuchanns/gray-matter-rs"
 readme = "README.md"
-keywords = ["markdown", "matter", "yaml", "toml", "json", "data", "parse", "frontmatter", "front-matter", "gray-matter", "front-matter-parsers"]
+keywords = ["markdown", "parse", "front-matter", "gray-matter", "front-matter-parsers"]
 exclude = [
     ".github/*"
 ]
