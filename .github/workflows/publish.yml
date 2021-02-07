@@ -30,7 +30,6 @@ jobs:
         uses: actions/cache@v2
         env:
           cache-name: cache-dependencies
-          CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
@@ -46,6 +45,8 @@ jobs:
           GIT_TAG_NAME: ${{ steps.tagName.outputs.tag }}
         run: sed -i "s/version = \"v0.1.0\"/version = \"${GIT_TAG_NAME}\"/" Cargo.toml
       - name: Cargo Login
+        env:
+          CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
         run: cargo login $CARGO_TOKEN
       - name: Cargo Publish Dry Run
         run: cargo publish --dry-run
