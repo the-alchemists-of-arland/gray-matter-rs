@@ -3,9 +3,9 @@ use crate::value::pod::Pod;
 /// **ParsedEntity** stores the parse result.
 #[derive(PartialEq, Debug)]
 pub struct ParsedEntity {
-    pub data: Pod,
+    pub data: Option<Pod>,
     pub content: String,
-    pub excerpt: String,
+    pub excerpt: Option<String>,
     pub orig: String,
 }
 
@@ -14,6 +14,6 @@ pub struct ParsedEntity {
 pub struct ParsedEntityStruct<T: serde::de::DeserializeOwned> {
     pub data: T,
     pub content: String,
-    pub excerpt: String,
+    pub excerpt: Option<String>,
     pub orig: String,
 }
