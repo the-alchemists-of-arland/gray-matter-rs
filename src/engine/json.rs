@@ -70,7 +70,7 @@ mod test {
 Some excerpt
 ---
 Other stuff"#;
-        #[derive(PartialEq, Deserialize)]
+        #[derive(PartialEq, Deserialize, Debug)]
         struct FrontMatter {
             title: String,
             description: String,
@@ -79,7 +79,7 @@ Other stuff"#;
             title: "JSON".to_string(),
             description: "Front Matter".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input.to_string()).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }

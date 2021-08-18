@@ -62,7 +62,7 @@ categories = "front matter toml"
 
 # This file has toml front matter!
 "#;
-        #[derive(Deserialize, PartialEq)]
+        #[derive(Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             title: String,
             description: String,
@@ -73,7 +73,7 @@ categories = "front matter toml"
             description: "Front matter".to_string(),
             categories: "front matter toml".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input.to_string()).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }

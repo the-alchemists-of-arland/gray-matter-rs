@@ -64,8 +64,8 @@ mod test {
 one: foo
 two: bar
 three: baz
-"#;
-        #[derive(Deserialize, PartialEq)]
+---"#;
+        #[derive(Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             one: String,
             two: String,
@@ -76,7 +76,7 @@ three: baz
             two: "bar".to_string(),
             three: "baz".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input.to_string()).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }
