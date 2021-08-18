@@ -7,6 +7,7 @@ pub struct ParsedEntity {
     pub content: String,
     pub excerpt: Option<String>,
     pub orig: String,
+    pub matter: String,
 }
 
 /// **ParsedEntity** stores the parse result and deserialize data to struct.
@@ -16,4 +17,5 @@ pub struct ParsedEntityStruct<T: serde::de::DeserializeOwned> {
     pub content: String,
     pub excerpt: Option<String>,
     pub orig: String,
+    pub matter: String,
 }
