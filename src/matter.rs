@@ -157,8 +157,8 @@ impl<T: Engine> Matter<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::yaml::YAML;
-    use crate::entity::ParsedEntityStruct;
+    use crate::engine::{YAML, TOML};
+    use crate::ParsedEntityStruct;
     use super::Matter;
 
     #[test]
@@ -353,5 +353,23 @@ mod tests {
             result.data.is_none(),
             "should not try to parse a string has content that looks like front-matter"
         );
+    }
+
+    #[test]
+    fn test_int_vs_float() {
+        #[derive(serde::Deserialize, PartialEq)]
+        struct FrontMatter {
+            int: i64,
+            float: f64,
+        }
+        let raw = r#"---
+int = 42
+float = 3.14159265
+---"#;
+        let matter: Matter<TOML> = Matter::new();
+        let result = matter.parse_with_struct::<FrontMatter>(raw).unwrap();
+
+        assert_eq!(result.data.int, 42 as i64);
+        assert_eq!(result.data.float, 3.14159265 as f64);
     }
 }
