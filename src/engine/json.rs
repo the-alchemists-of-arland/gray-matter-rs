@@ -2,7 +2,7 @@ use crate::engine::Engine;
 use crate::Pod;
 use json::JsonValue;
 
-#[derive(PartialEq, Debug)]
+/// [`Engine`](crate::engine::Engine) for the [JSON](https://www.json.org/) configuration format.
 pub struct JSON;
 
 impl Engine for JSON {

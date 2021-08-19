@@ -2,7 +2,7 @@ use crate::engine::Engine;
 use crate::Pod;
 use yaml_rust::{Yaml, YamlLoader};
 
-#[derive(PartialEq, Debug)]
+/// [`Engine`](crate::engine::Engine) for the [YAML](https://yaml.org) configuration format.
 pub struct YAML;
 
 impl Engine for YAML {

@@ -2,7 +2,7 @@ use crate::engine::Engine;
 use crate::Pod;
 use toml::Value as TomlValue;
 
-#[derive(PartialEq, Debug)]
+/// [`Engine`](crate::engine::Engine) for the [TOML](https://toml.io/) configuration format.
 pub struct TOML;
 
 impl Engine for TOML {
