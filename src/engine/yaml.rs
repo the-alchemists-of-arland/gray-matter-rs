@@ -1,16 +1,12 @@
 use crate::engine::Engine;
-use crate::value::pod::Pod;
+use crate::Pod;
 use yaml_rust::{Yaml, YamlLoader};
 
-#[derive(PartialEq, Debug)]
-pub struct YAML {}
+/// [`Engine`](crate::engine::Engine) for the [YAML](https://yaml.org) configuration format.
+pub struct YAML;
 
 impl Engine for YAML {
-    fn new() -> Self {
-        return YAML {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match YamlLoader::load_from_str(content) {
             Ok(docs) => {
                 let mut doc = Pod::Null;
@@ -64,8 +60,8 @@ mod test {
 one: foo
 two: bar
 three: baz
-"#;
-        #[derive(Deserialize, PartialEq)]
+---"#;
+        #[derive(Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             one: String,
             two: String,
@@ -76,7 +72,7 @@ three: baz
             two: "bar".to_string(),
             three: "baz".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }

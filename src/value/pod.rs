@@ -6,6 +6,11 @@ use std::ops::{Index, IndexMut};
 
 type IResult<T> = Result<T, Error>;
 
+/// A polyglot data type for representing the parsed front matter.
+///
+/// Any [`Engine`](crate::engine::Engine) has to convert the data represented by the format into a
+/// `Pod`. This ensures we can use the parsed data similarly, regardless of the format it is parsed
+/// from.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Pod {
     Null,
@@ -20,6 +25,19 @@ pub enum Pod {
 static NULL: Pod = Pod::Null;
 
 impl Pod {
+    /// Deserialize a `Pod` into any struct that implements
+    /// [`Deserialize`](https://docs.rs/serde/1.0.127/serde/trait.Deserialize.html).
+    ///
+    /// **Note**: The function coerces `self` into a
+    /// [`serde_json::Value`](https://docs.rs/serde_json/1.0.66/serde_json/enum.Value.html) in
+    /// order to work around implementing a custom `Deserializer` for `Pod`.
+    pub fn deserialize<T: DeserializeOwned>(&self) -> serde_json::Result<T> {
+        use serde_json::{from_value, Value};
+        let value: Value = self.clone().into();
+        let ret: T = from_value(value)?;
+        Ok(ret)
+    }
+
     pub fn new_array() -> Pod {
         return Pod::Array(vec![]);
     }
@@ -126,14 +144,6 @@ impl Pod {
             Pod::Hash(ref value) => Ok(value.clone()),
             _ => Err(Error::type_error("Hash")),
         }
-    }
-
-    /// Deserialize Pod into struct by serde_json.
-    pub fn deserialize<T: DeserializeOwned>(&self) -> serde_json::Result<T> {
-        use serde_json::{from_value, Value};
-        let value: Value = self.clone().into();
-        let ret: T = from_value(value)?;
-        Ok(ret)
     }
 }
 

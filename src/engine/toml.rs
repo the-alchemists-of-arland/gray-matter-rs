@@ -1,16 +1,12 @@
 use crate::engine::Engine;
-use crate::value::pod::Pod;
+use crate::Pod;
 use toml::Value as TomlValue;
 
-#[derive(PartialEq, Debug)]
-pub struct TOML {}
+/// [`Engine`](crate::engine::Engine) for the [TOML](https://toml.io/) configuration format.
+pub struct TOML;
 
 impl Engine for TOML {
-    fn new() -> Self {
-        return TOML {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match toml::from_str::<TomlValue>(content) {
             Ok(value) => value.into(),
             Err(..) => Pod::Null,
@@ -62,7 +58,7 @@ categories = "front matter toml"
 
 # This file has toml front matter!
 "#;
-        #[derive(Deserialize, PartialEq)]
+        #[derive(Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             title: String,
             description: String,
@@ -73,7 +69,7 @@ categories = "front matter toml"
             description: "Front matter".to_string(),
             categories: "front matter toml".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }

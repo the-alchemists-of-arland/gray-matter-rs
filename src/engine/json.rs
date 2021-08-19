@@ -1,16 +1,12 @@
 use crate::engine::Engine;
-use crate::value::pod::Pod;
+use crate::Pod;
 use json::JsonValue;
 
-#[derive(PartialEq, Debug)]
-pub struct JSON {}
+/// [`Engine`](crate::engine::Engine) for the [JSON](https://www.json.org/) configuration format.
+pub struct JSON;
 
 impl Engine for JSON {
-    fn new() -> Self {
-        return JSON {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match json::parse(content) {
             Ok(data) => data.into(),
             Err(_) => Pod::Null,
@@ -70,7 +66,7 @@ mod test {
 Some excerpt
 ---
 Other stuff"#;
-        #[derive(PartialEq, Deserialize)]
+        #[derive(PartialEq, Deserialize, Debug)]
         struct FrontMatter {
             title: String,
             description: String,
@@ -79,7 +75,7 @@ Other stuff"#;
             title: "JSON".to_string(),
             description: "Front Matter".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.matter_struct(input.to_string());
-        assert_eq!(true, result.data == data_expected);
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
+        assert_eq!(result.data, data_expected);
     }
 }
