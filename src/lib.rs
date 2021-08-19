@@ -97,9 +97,16 @@
 //! ```
 
 // Test README
-#[doc = include_str!("../README.md")]
 #[cfg(doctest)]
-pub struct ReadmeDoctests;
+macro_rules! doc_check {
+    ($x:expr) => {
+        #[doc = $x]
+        extern {}
+    };
+}
+
+#[cfg(doctest)]
+doc_check!(include_str!("../README.md"));
 
 /// A module containing the [`Engine`](crate::engine::Engine) trait, along with gray_matter's default engines.
 pub mod engine;
