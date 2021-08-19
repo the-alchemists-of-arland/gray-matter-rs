@@ -3,14 +3,10 @@ use crate::Pod;
 use json::JsonValue;
 
 #[derive(PartialEq, Debug)]
-pub struct JSON {}
+pub struct JSON;
 
 impl Engine for JSON {
-    fn new() -> Self {
-        return JSON {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match json::parse(content) {
             Ok(data) => data.into(),
             Err(_) => Pod::Null,

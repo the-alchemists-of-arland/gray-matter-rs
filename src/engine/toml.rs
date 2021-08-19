@@ -3,14 +3,10 @@ use crate::Pod;
 use toml::Value as TomlValue;
 
 #[derive(PartialEq, Debug)]
-pub struct TOML {}
+pub struct TOML;
 
 impl Engine for TOML {
-    fn new() -> Self {
-        return TOML {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match toml::from_str::<TomlValue>(content) {
             Ok(value) => value.into(),
             Err(..) => Pod::Null,

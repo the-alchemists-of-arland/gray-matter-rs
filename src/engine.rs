@@ -19,6 +19,5 @@ pub use crate::engine::json::JSON;
 /// Implementing this trait in your own engine will allow you to create a custom front matter
 /// format that is understood by [gray_matter](crate).
 pub trait Engine {
-    fn new() -> Self;
-    fn parse(&self, content: &str) -> Pod;
+    fn parse(content: &str) -> Pod;
 }

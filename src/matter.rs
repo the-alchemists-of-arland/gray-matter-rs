@@ -1,6 +1,7 @@
 use crate::engine::Engine;
 use crate::{ParsedEntity, ParsedEntityStruct};
 use regex::Regex;
+use std::marker::PhantomData;
 
 enum Part {
     Matter,
@@ -11,7 +12,7 @@ enum Part {
 pub struct Matter<T: Engine> {
     pub delimiter: String,
     pub excerpt_delimiter: Option<String>,
-    engine: T,
+    engine: PhantomData<T>,
 }
 
 impl<T: Engine> Matter<T> {
@@ -19,7 +20,7 @@ impl<T: Engine> Matter<T> {
         Self {
             delimiter: "---".to_string(),
             excerpt_delimiter: None,
-            engine: T::new(),
+            engine: PhantomData,
         }
     }
 
@@ -84,7 +85,7 @@ impl<T: Engine> Matter<T> {
                             .to_string();
 
                         if !matter.is_empty() {
-                            parsed_entity.data = Some(self.engine.parse(&matter));
+                            parsed_entity.data = Some(T::parse(&matter));
                             parsed_entity.matter = matter;
                         }
 

@@ -3,14 +3,10 @@ use crate::Pod;
 use yaml_rust::{Yaml, YamlLoader};
 
 #[derive(PartialEq, Debug)]
-pub struct YAML {}
+pub struct YAML;
 
 impl Engine for YAML {
-    fn new() -> Self {
-        return YAML {};
-    }
-
-    fn parse(&self, content: &str) -> Pod {
+    fn parse(content: &str) -> Pod {
         match YamlLoader::load_from_str(content) {
             Ok(docs) => {
                 let mut doc = Pod::Null;
