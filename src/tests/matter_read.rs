@@ -45,14 +45,12 @@ fn test_basic() {
         title: "Basic".to_string(),
     };
     assert_eq!(
-        result.data,
-        data_expected,
+        result.data, data_expected,
         "should get front matter as {:?}",
         data_expected
     );
     assert_eq!(
-        result.content,
-        "this is content.",
+        result.content, "this is content.",
         "should get content as \"this is content.\""
     );
 }
@@ -79,8 +77,7 @@ fn test_parse_complex_yaml_front_matter() {
         google: false,
     };
     assert_eq!(
-        result.data,
-        data_expected,
+        result.data, data_expected,
         "should get front matter as {:?}",
         data_expected
     );
@@ -91,8 +88,14 @@ fn test_parse_complex_yaml_front_matter() {
 #[test]
 fn test_parse_no_matter() {
     let result = matter_yaml("hasnt-matter.md");
-    assert!(result.data.is_none(), "Parsing `hasnt-matter.md` shold give `data` = None.");
-    assert!(!result.content.is_empty(), "Parsing `hasnt-matter.md` should give non-empty `content`.")
+    assert!(
+        result.data.is_none(),
+        "Parsing `hasnt-matter.md` shold give `data` = None."
+    );
+    assert!(
+        !result.content.is_empty(),
+        "Parsing `hasnt-matter.md` should give non-empty `content`."
+    )
 }
 
 #[test]
@@ -108,6 +111,13 @@ fn test_all_matter() {
         result.data.is_none(),
         "Should not get any front matter from `all.yaml`.",
     );
-    assert!(!result.content.is_empty(), "Parsing `all.yaml` should give non-empty `content`.");
-    assert_eq!(true, result.excerpt.is_none(), "Parsing `all.yaml` should give `excerpt` = None.");
+    assert!(
+        !result.content.is_empty(),
+        "Parsing `all.yaml` should give non-empty `content`."
+    );
+    assert_eq!(
+        true,
+        result.excerpt.is_none(),
+        "Parsing `all.yaml` should give `excerpt` = None."
+    );
 }

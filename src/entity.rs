@@ -18,7 +18,7 @@ use crate::Pod;
 ///
 /// let matter = Matter::<TOML>::new();
 /// let result: ParsedEntity = matter.parse(text);
-/// 
+///
 /// assert_eq!(result.data.unwrap()["field"], Pod::String("Value".to_owned()));
 /// assert_eq!(result.excerpt, Some("Here is excerpt".to_owned()));
 /// assert_eq!(result.content, "Here is excerpt\n---\nHere is content")
@@ -61,7 +61,7 @@ pub struct ParsedEntity {
 ///
 /// let matter = Matter::<YAML>::new();
 /// let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(text).unwrap();
-/// 
+///
 /// assert_eq!(result.data.field, -134);
 /// assert_eq!(result.excerpt, Some("Here is excerpt".to_owned()));
 /// assert_eq!(result.content, "Here is excerpt\n---\nHere is content")

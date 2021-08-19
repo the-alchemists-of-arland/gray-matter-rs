@@ -9,6 +9,8 @@ enum Part {
     Content,
 }
 
+/// Coupled with an [`Engine`](crate::engine::Engine) of choice, `Matter` stores delimiter(s) and
+/// handles parsing.
 pub struct Matter<T: Engine> {
     pub delimiter: String,
     pub excerpt_delimiter: Option<String>,
@@ -36,7 +38,9 @@ impl<T: Engine> Matter<T> {
     /// # use gray_matter::engine::YAML;
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
-    /// let parsed_entity =  matter.parse(input);
+    /// let parsed_entity = matter.parse(input);
+    ///
+    /// assert_eq!(parsed_entity.content, "Other stuff");
     /// ```
     pub fn parse(&self, input: &str) -> ParsedEntity {
         // Initialize ParsedEntity
@@ -49,14 +53,14 @@ impl<T: Engine> Matter<T> {
         };
 
         // Check if input is empty or shorter than the delimiter
-        if input.is_empty()
-        || input.len() <= self.delimiter.len()
-        {
+        if input.is_empty() || input.len() <= self.delimiter.len() {
             return parsed_entity;
         }
 
         // If excerpt delimiter is given, use it. Otherwise, use normal delimiter
-        let excerpt_delimiter = self.excerpt_delimiter.clone()
+        let excerpt_delimiter = self
+            .excerpt_delimiter
+            .clone()
             .unwrap_or_else(|| self.delimiter.clone());
 
         let mut lines = input.lines();
@@ -65,10 +69,15 @@ impl<T: Engine> Matter<T> {
         // matter. Else, we might be looking at an excerpt.
         // FIXME: We are only trimming the start of the line. We might have a delimiter with
         // whitespace after: `---  \n`. gray_matter should handle this.
-        let mut looking_at = if input.trim_start().starts_with(&(self.delimiter.clone() + "\n")) {
+        let mut looking_at = if input
+            .trim_start()
+            .starts_with(&(self.delimiter.clone() + "\n"))
+        {
             lines.next();
             Part::Matter
-        } else { Part::MaybeExcerpt };
+        } else {
+            Part::MaybeExcerpt
+        };
 
         let mut acc = String::new();
         for line in lines {
@@ -78,9 +87,11 @@ impl<T: Engine> Matter<T> {
                 Part::Matter => {
                     if line.trim() == self.delimiter {
                         let comment_re = Regex::new(r"(?m)^\s*#[^\n]+").unwrap();
-                        let matter = comment_re.replace_all(&acc, "")
+                        let matter = comment_re
+                            .replace_all(&acc, "")
                             .trim()
-                            .strip_suffix(&self.delimiter).unwrap()
+                            .strip_suffix(&self.delimiter)
+                            .unwrap()
                             .trim_matches('\n')
                             .to_string();
 
@@ -92,21 +103,23 @@ impl<T: Engine> Matter<T> {
                         acc = String::new();
                         looking_at = Part::MaybeExcerpt;
                     }
-                },
+                }
 
                 Part::MaybeExcerpt => {
                     if line.trim() == excerpt_delimiter {
                         parsed_entity.excerpt = Some(
                             acc.trim()
-                            .strip_prefix(&self.delimiter).unwrap_or(&acc)
-                            .strip_suffix(&excerpt_delimiter).unwrap()
-                            .trim_matches('\n')
-                            .to_string()
+                                .strip_prefix(&self.delimiter)
+                                .unwrap_or(&acc)
+                                .strip_suffix(&excerpt_delimiter)
+                                .unwrap()
+                                .trim_matches('\n')
+                                .to_string(),
                         );
 
                         looking_at = Part::Content;
                     }
-                },
+                }
 
                 Part::Content => {}
             }
@@ -117,12 +130,13 @@ impl<T: Engine> Matter<T> {
         parsed_entity
     }
 
-    /// Wrapper around [`parse`](Matter::parse), that deserializes any front matter into a custom struct.
-    ///
-    /// Supplied as an ease-of-use function to prevent having to deserialize manually.
+    /// Wrapper around [`parse`](Matter::parse), that deserializes any front matter into a custom
+    /// struct. Supplied as an ease-of-use function to prevent having to deserialize manually.
     ///
     /// Returns `None` if no front matter is found, or if the front matter is not deserializable
     /// into the custom struct.
+    ///
+    /// ## Examples
     ///
     /// Basic usage:
     ///
@@ -134,9 +148,12 @@ impl<T: Engine> Matter<T> {
     /// struct Config {
     ///     title: String,
     /// }
+    ///
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
     /// let parsed_entity =  matter.parse_with_struct::<Config>(input).unwrap();
+    ///
+    /// assert_eq!(parsed_entity.data.title, "Home");
     /// ```
     pub fn parse_with_struct<D: serde::de::DeserializeOwned>(
         &self,
@@ -157,9 +174,9 @@ impl<T: Engine> Matter<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::{YAML, TOML};
-    use crate::ParsedEntityStruct;
     use super::Matter;
+    use crate::engine::{TOML, YAML};
+    use crate::ParsedEntityStruct;
 
     #[test]
     fn test_front_matter() {
@@ -185,8 +202,7 @@ mod tests {
         let result: ParsedEntityStruct<FrontMatter> =
             matter.parse_with_struct("~~~\nabc: xyz\n~~~").unwrap();
         assert_eq!(
-            result.data,
-            front_matter,
+            result.data, front_matter,
             "{}",
             "should get front matter by custom delimiter"
         );
@@ -207,8 +223,7 @@ mod tests {
             let result = matter.parse(input);
             assert!(result.data.is_none(), "should get no front matter");
             assert_eq!(
-                result.content,
-                "This is content",
+                result.content, "This is content",
                 "should get content as \"This is content\""
             );
         }
@@ -221,8 +236,9 @@ mod tests {
             abc: String,
         }
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntityStruct<FrontMatter> =
-            matter.parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent").unwrap();
+        let result: ParsedEntityStruct<FrontMatter> = matter
+            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent")
+            .unwrap();
         assert_eq!(
             result.data.abc,
             "xyz".to_string(),
@@ -239,9 +255,9 @@ mod tests {
             "should get an excerpt after front matter"
         );
         matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_string());
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(
-            "---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
-        ).unwrap();
+        let result: ParsedEntityStruct<FrontMatter> = matter
+            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent")
+            .unwrap();
         assert_eq!(
             true,
             result.data.abc == "xyz".to_string(),
@@ -318,8 +334,7 @@ mod tests {
         let content_expected =
             "<span class=\"alert alert-info\">This is an alert</span>".to_string();
         assert_eq!(
-            result.content,
-            content_expected,
+            result.content, content_expected,
             "should get content as {:?}",
             content_expected
         );
@@ -327,12 +342,15 @@ mod tests {
         struct FrontMatterName {
             name: String,
         }
-        let result: ParsedEntityStruct<FrontMatterName> = matter.parse_with_struct(
-            r#"---
+        let result: ParsedEntityStruct<FrontMatterName> = matter
+            .parse_with_struct(
+                r#"---
     name: "troublesome --- value"
     ---
     here is some content
-    "#,).unwrap();
+    "#,
+            )
+            .unwrap();
         let data_expected = FrontMatterName {
             name: "troublesome --- value".to_string(),
         };
@@ -341,8 +359,9 @@ mod tests {
             result.data == data_expected,
             "should correctly identify delimiters and ignore strings that look like delimiters and get front matter as {:?}", data_expected
         );
-        let result: ParsedEntityStruct<FrontMatterName> =
-            matter.parse_with_struct("---\nname: \"troublesome --- value\"\n---").unwrap();
+        let result: ParsedEntityStruct<FrontMatterName> = matter
+            .parse_with_struct("---\nname: \"troublesome --- value\"\n---")
+            .unwrap();
         assert_eq!(
             true,
             result.data == data_expected,

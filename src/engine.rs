@@ -8,11 +8,11 @@ pub mod toml;
 pub mod yaml;
 
 #[doc(inline)]
-pub use crate::engine::yaml::YAML;
+pub use crate::engine::json::JSON;
 #[doc(inline)]
 pub use crate::engine::toml::TOML;
 #[doc(inline)]
-pub use crate::engine::json::JSON;
+pub use crate::engine::yaml::YAML;
 
 /// The trait requirement used by [`Matter`](crate::Matter) when parsing the front matter.
 ///
