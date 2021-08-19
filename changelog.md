@@ -36,6 +36,7 @@
 
     It's also worth noting that these functions now take the `input` parameter as a string slice (`&str`) instead of a `String`, for flexibility.
 
+- `Matter` field `excerpt_separator` is now called `excerpt_delimiter` for consistency.
 - `ParsedEntity` and `ParsedEntityStruct` have the added field `matter`, that stores the raw front matter content. The `excerpt` field is now an `Option<String>`, that is `None` if no excerpt is found.
 
     In `ParsedEntity`, the field `data` is an `Option<Pod>`, that is `None` if no front matter is found.
