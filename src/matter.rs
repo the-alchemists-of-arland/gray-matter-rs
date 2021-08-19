@@ -23,42 +23,15 @@ impl<T: Engine> Matter<T> {
         };
     }
 
-    /// **matter_struct** takes a &str, extracts and parses front-matter from it,
-    /// then returns a ParsedEntityStruct result.
+    /// Runs parsing on the input. Uses the [engine](crate::engine) contained in `self` to parse any front matter
+    /// detected.
+    ///
+    /// ## Examples
+    ///
+    /// Basic usage:
     ///
     /// ```rust
-    /// # use gray_matter::matter::Matter;
-    /// # use gray_matter::engine::yaml::YAML;
-    /// # use gray_matter::entity::ParsedEntityStruct;
-    /// #[derive(serde::Deserialize)]
-    /// struct Config {
-    ///     title: String,
-    /// }
-    /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff";
-    /// let parsed_entity: ParsedEntityStruct<Config> =  matter.parse_with_struct(input).unwrap();
-    /// ```
-    pub fn parse_with_struct<D: serde::de::DeserializeOwned>(
-        &self,
-        input: &str,
-    ) -> Option<ParsedEntityStruct<D>> {
-        let parsed_entity = self.parse(input);
-        let data: D = parsed_entity.data?.deserialize().ok()?;
-
-        Some(ParsedEntityStruct {
-            data,
-            content: parsed_entity.content,
-            excerpt: parsed_entity.excerpt,
-            orig: parsed_entity.orig,
-            matter: parsed_entity.matter,
-        })
-    }
-
-    /// **parse** takes a `&str`, extracts and parses front-matter from it,
-    /// then returns a ParsedEntity result.
-    ///
-    /// ```rust
-    /// # use gray_matter::matter::Matter;
+    /// # use gray_matter::Matter;
     /// # use gray_matter::engine::yaml::YAML;
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
@@ -141,5 +114,42 @@ impl<T: Engine> Matter<T> {
         parsed_entity.content = acc.trim().to_string();
 
         parsed_entity
+    }
+
+    /// Wrapper around [`parse`](Matter::parse), that deserializes any front matter into a custom struct.
+    ///
+    /// Supplied as an ease-of-use function to prevent having to deserialize manually.
+    ///
+    /// Returns `None` if no front matter is found, or if the front matter is not deserializable
+    /// into the custom struct.
+    ///
+    /// Basic usage:
+    ///
+    /// ```rust
+    /// # use gray_matter::matter::Matter;
+    /// # use gray_matter::engine::yaml::YAML;
+    /// # use gray_matter::entity::ParsedEntityStruct;
+    /// #[derive(serde::Deserialize)]
+    /// struct Config {
+    ///     title: String,
+    /// }
+    /// let matter: Matter<YAML> = Matter::new();
+    /// let input = "---\ntitle: Home\n---\nOther stuff";
+    /// let parsed_entity =  matter.parse_with_struct::<Config>(input).unwrap();
+    /// ```
+    pub fn parse_with_struct<D: serde::de::DeserializeOwned>(
+        &self,
+        input: &str,
+    ) -> Option<ParsedEntityStruct<D>> {
+        let parsed_entity = self.parse(input);
+        let data: D = parsed_entity.data?.deserialize().ok()?;
+
+        Some(ParsedEntityStruct {
+            data,
+            content: parsed_entity.content,
+            excerpt: parsed_entity.excerpt,
+            orig: parsed_entity.orig,
+            matter: parsed_entity.matter,
+        })
     }
 }
