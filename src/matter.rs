@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use crate::entity::{ParsedEntity, ParsedEntityStruct};
+use crate::{ParsedEntity, ParsedEntityStruct};
 use regex::Regex;
 
 enum Part {
@@ -32,7 +32,7 @@ impl<T: Engine> Matter<T> {
     ///
     /// ```rust
     /// # use gray_matter::Matter;
-    /// # use gray_matter::engine::yaml::YAML;
+    /// # use gray_matter::engine::YAML;
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
     /// let parsed_entity =  matter.parse(input);
@@ -126,9 +126,9 @@ impl<T: Engine> Matter<T> {
     /// Basic usage:
     ///
     /// ```rust
-    /// # use gray_matter::matter::Matter;
-    /// # use gray_matter::engine::yaml::YAML;
-    /// # use gray_matter::entity::ParsedEntityStruct;
+    /// # use gray_matter::Matter;
+    /// # use gray_matter::engine::YAML;
+    /// # use gray_matter::ParsedEntityStruct;
     /// #[derive(serde::Deserialize)]
     /// struct Config {
     ///     title: String,
