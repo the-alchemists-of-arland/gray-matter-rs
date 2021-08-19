@@ -50,7 +50,6 @@
 //! ```rust
 //! use gray_matter::Matter;
 //! use gray_matter::engine::YAML;
-//! use gray_matter::ParsedEntityStruct;
 //! use serde::Deserialize;
 //!
 //! const INPUT: &str = r#"---
@@ -91,11 +90,16 @@
 //!     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
 //!
 //!     // ...or skip a step, by using `parse_with_struct`.
-//!     let result_with_struct: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(INPUT).unwrap();
+//!     let result_with_struct = matter.parse_with_struct::<FrontMatter>(INPUT).unwrap();
 //!     println!("{:?}", result_with_struct.data)
 //!     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
 //! }
 //! ```
+
+// Test README
+#[doc = include_str!("../README.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;
 
 /// A module containing the [`Engine`](crate::engine::Engine) trait, along with gray_matter's default engines.
 pub mod engine;
