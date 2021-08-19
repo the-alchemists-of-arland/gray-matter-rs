@@ -25,13 +25,13 @@ fn read_content(file_name: &str) -> String {
 fn matter_yaml(file_name: &str) -> ParsedEntity {
     let content = read_content(file_name);
     let matter: Matter<YAML> = Matter::new();
-    matter.matter(content)
+    matter.parse(&content)
 }
 
-fn matter_yaml_struct<D: DeserializeOwned>(file_name: &str) -> ParsedEntityStruct<D> {
+fn matter_yaml_struct<D: DeserializeOwned>(file_name: &str) -> Option<ParsedEntityStruct<D>> {
     let content = read_content(file_name);
     let matter: Matter<YAML> = Matter::new();
-    matter.matter_struct(content)
+    matter.parse_with_struct(&content)
 }
 
 #[test]
@@ -40,29 +40,28 @@ fn test_basic() {
     struct FrontMatter {
         title: String,
     }
-    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("basic.txt");
+    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("basic.txt").unwrap();
     let data_expected = FrontMatter {
         title: "Basic".to_string(),
     };
     assert_eq!(
-        true,
-        result.data == data_expected,
+        result.data,
+        data_expected,
         "should get front matter as {:?}",
         data_expected
     );
     assert_eq!(
-        true,
-        result.content == "this is content.",
+        result.content,
+        "this is content.",
         "should get content as \"this is content.\""
     );
 }
 #[test]
 fn test_parse_empty() {
     let result = matter_yaml("empty.md");
-    assert_eq!(true, result.content.is_empty(), "should get no content");
-    assert_eq!(true, result.excerpt.is_empty(), "should get no excerpt");
-    assert_eq!(true, result.orig.is_empty(), "should get no orig");
-    assert_eq!(true, result.data.len() == 0, "should get no front matter");
+    assert!(result.content.is_empty());
+    assert!(result.data.is_none());
+    assert!(result.excerpt.is_none())
 }
 
 #[test]
@@ -73,26 +72,27 @@ fn test_parse_complex_yaml_front_matter() {
         assets: String,
         google: bool,
     }
-    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("complex.md");
+    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("complex.md").unwrap();
     let data_expected = FrontMatter {
         root: "_gh_pages".to_string(),
         assets: "<%= site.dest %>/assets".to_string(),
         google: false,
     };
     assert_eq!(
-        true,
-        result.data == data_expected,
+        result.data,
+        data_expected,
         "should get front matter as {:?}",
         data_expected
     );
-    assert_eq!(false, result.content.is_empty(), "should get content");
-    assert_eq!(false, result.excerpt.is_empty(), "should get excerpt")
+    assert!(!result.content.is_empty(), "should get content");
+    assert!(result.excerpt.is_some(), "should get excerpt")
 }
 
 #[test]
 fn test_parse_no_matter() {
     let result = matter_yaml("hasnt-matter.md");
-    assert_eq!(true, result.data.len() == 0, "should get no front matter");
+    assert!(result.data.is_none(), "Parsing `hasnt-matter.md` shold give `data` = None.");
+    assert!(!result.content.is_empty(), "Parsing `hasnt-matter.md` should give non-empty `content`.")
 }
 
 #[test]
@@ -103,18 +103,11 @@ fn test_all_matter() {
         two: String,
         three: String,
     }
-    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("all.yaml");
-    let data_expected = FrontMatter {
-        one: "foo".to_string(),
-        two: "bar".to_string(),
-        three: "baz".to_string(),
-    };
-    assert_eq!(
-        true,
-        result.data == data_expected,
-        "should get front matter as {:?}",
-        data_expected
+    let result = matter_yaml("all.yaml");
+    assert!(
+        result.data.is_none(),
+        "Should not get any front matter from `all.yaml`.",
     );
-    assert_eq!(true, result.content.is_empty(), "should get no content");
-    assert_eq!(true, result.excerpt.is_empty(), "should get no excerpt");
+    assert!(!result.content.is_empty(), "Parsing `all.yaml` should give non-empty `content`.");
+    assert_eq!(true, result.excerpt.is_none(), "Parsing `all.yaml` should give `excerpt` = None.");
 }

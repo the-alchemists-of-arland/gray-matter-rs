@@ -79,7 +79,7 @@ Other stuff"#;
             title: "JSON".to_string(),
             description: "Front Matter".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input.to_string()).unwrap();
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
         assert_eq!(result.data, data_expected);
     }
 }
