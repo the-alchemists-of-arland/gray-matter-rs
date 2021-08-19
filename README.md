@@ -1,8 +1,6 @@
-<h1 align="center">gray-matter-rs</h1>
-
-<p align="center">![](https://github.com/yuchanns/gray-matter-rs/workflows/main/badge.svg?branch=main)
+![](https://github.com/the-alchemists-of-arland/gray-matter-rs/workflows/main/badge.svg?branch=main)
 [![Latest Version](https://img.shields.io/crates/v/gray_matter.svg)](https://crates.io/crates/gray_matter)
-[![Documentation](https://docs.rs/gray_matter/badge.svg)](https://docs.rs/gray_matter)</p>
+[![Documentation](https://docs.rs/gray_matter/badge.svg)](https://docs.rs/gray_matter)
 
 gray_matter is a tool for easily extracting front matter out of a string. It is a fast Rust implementation of [gray-matter](https://github.com/jonschlinkert/gray-matter). It supports the following front matter formats:
 

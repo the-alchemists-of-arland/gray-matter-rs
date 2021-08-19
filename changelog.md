@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (Not released)
+## 0.2.0
 
 ### Major changes
 
