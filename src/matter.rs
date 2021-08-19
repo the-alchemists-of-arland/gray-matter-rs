@@ -35,14 +35,14 @@ impl<T: Engine> Matter<T> {
     ///     title: String,
     /// }
     /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff".to_string();
-    /// let parsed_entity: ParsedEntityStruct<Config> =  matter.matter_struct(input);
+    /// let input = "---\ntitle: Home\n---\nOther stuff";
+    /// let parsed_entity: ParsedEntityStruct<Config> =  matter.parse_with_struct(input).unwrap();
     /// ```
     pub fn parse_with_struct<D: serde::de::DeserializeOwned>(
         &self,
-        input: String,
+        input: &str,
     ) -> Option<ParsedEntityStruct<D>> {
-        let parsed_entity = self.parse(input.clone())?;
+        let parsed_entity = self.parse(input);
         let data: D = parsed_entity.data?.deserialize().ok()?;
 
         Some(ParsedEntityStruct {
@@ -61,25 +61,25 @@ impl<T: Engine> Matter<T> {
     /// # use gray_matter::matter::Matter;
     /// # use gray_matter::engine::yaml::YAML;
     /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff".to_string();
+    /// let input = "---\ntitle: Home\n---\nOther stuff";
     /// let parsed_entity =  matter.parse(input);
     /// ```
-    pub fn parse(&self, input: String) -> Option<ParsedEntity> {
-        // Check if input is empty or shorter than the delimiter
-        if input.is_empty()
-        || input.len() <= self.delimiter.len()
-        {
-            return None;
-        }
-
+    pub fn parse(&self, input: &str) -> ParsedEntity {
         // Initialize ParsedEntity
         let mut parsed_entity = ParsedEntity {
             data: None,
             excerpt: None,
             content: String::new(),
-            orig: input.clone(),
+            orig: input.to_owned(),
             matter: String::new(),
         };
+
+        // Check if input is empty or shorter than the delimiter
+        if input.is_empty()
+        || input.len() <= self.delimiter.len()
+        {
+            return parsed_entity;
+        }
 
         // If excerpt delimiter is given, use it. Otherwise, use normal delimiter
         let excerpt_delimiter = self.excerpt_delimiter.clone()
@@ -126,10 +126,10 @@ impl<T: Engine> Matter<T> {
                             acc.trim()
                             .strip_prefix(&self.delimiter).unwrap_or(&acc)
                             .strip_suffix(&excerpt_delimiter).unwrap()
+                            .trim_matches('\n')
                             .to_string()
                         );
 
-                        acc = String::new();
                         looking_at = Part::Content;
                     }
                 },
@@ -140,6 +140,6 @@ impl<T: Engine> Matter<T> {
 
         parsed_entity.content = acc.trim().to_string();
 
-        Some(parsed_entity)
+        parsed_entity
     }
 }
