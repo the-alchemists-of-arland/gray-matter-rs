@@ -1,12 +1,12 @@
 [package]
 name = "gray_matter"
-version = "0.1.0"
-authors = ["yuchanns <airamusume@gmail.com>"]
+version = "0.2.0"
+authors = ["yuchanns <airamusume@gmail.com>", "Knut Magnus Aasrud <km@aasrud.com>"]
 edition = "2018"
 license = "MIT"
 description = "Smart front matter parser. An implementation of gray-matter in rust. Parses YAML, JSON, TOML and support for custom parsers."
-homepage = "https://github.com/yuchanns/gray-matter-rs"
-repository = "https://github.com/yuchanns/gray-matter-rs"
+homepage = "https://github.com/the-alchemists-of-arland/gray-matter-rs"
+repository = "https://github.com/the-alchemists-of-arland/gray-matter-rs"
 readme = "README.md"
 keywords = ["markdown", "parse", "front-matter", "gray-matter", "front-matter-parsers"]
 exclude = [
