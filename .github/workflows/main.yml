@@ -5,6 +5,11 @@ on:
       - main
     tags-ignore:
       - v*
+  pull_request:
+    branches:
+      - main
+    tags-ignore:
+      - v*
 jobs:
   test:
     runs-on: ubuntu-20.04
