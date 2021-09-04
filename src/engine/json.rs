@@ -22,7 +22,7 @@ impl Into<Pod> for JsonValue {
             JsonValue::String(val) => Pod::String(val),
             JsonValue::Number(val) => {
                 let val_string = val.to_string();
-                if val_string.contains(".") {
+                if val_string.contains('.') {
                     Pod::Float(val_string.parse().unwrap_or(0 as f64))
                 } else {
                     Pod::Integer(val_string.parse().unwrap_or(0))

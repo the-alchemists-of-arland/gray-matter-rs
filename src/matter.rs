@@ -17,6 +17,12 @@ pub struct Matter<T: Engine> {
     engine: PhantomData<T>,
 }
 
+impl<T: Engine> Default for Matter<T> {
+    fn default() -> Self {
+        Matter::new()
+    }
+}
+
 impl<T: Engine> Matter<T> {
     pub fn new() -> Self {
         Self {
@@ -81,7 +87,7 @@ impl<T: Engine> Matter<T> {
 
         let mut acc = String::new();
         for line in lines {
-            &line.to_string().push('\n');
+            line.to_string().push('\n');
             acc += &format!("\n{}", line);
             match looking_at {
                 Part::Matter => {
