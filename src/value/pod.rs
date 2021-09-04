@@ -39,11 +39,11 @@ impl Pod {
     }
 
     pub fn new_array() -> Pod {
-        return Pod::Array(vec![]);
+        Pod::Array(vec![])
     }
 
     pub fn new_hash() -> Pod {
-        return Pod::Hash(HashMap::new());
+        Pod::Hash(HashMap::new())
     }
 
     /// Pushes a new value into `Pod::Array`.
@@ -102,6 +102,10 @@ impl Pod {
             Pod::Hash(ref value) => value.len(),
             _ => 0,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() > 0
     }
 
     pub fn as_string(&self) -> Result<String, Error> {

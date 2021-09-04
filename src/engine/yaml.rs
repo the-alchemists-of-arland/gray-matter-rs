@@ -10,7 +10,7 @@ impl Engine for YAML {
         match YamlLoader::load_from_str(content) {
             Ok(docs) => {
                 let mut doc = Pod::Null;
-                if docs.len() > 0 {
+                if !docs.is_empty() {
                     doc = docs[0].clone().into();
                 }
                 doc
