@@ -72,8 +72,10 @@ impl<T: Engine> Matter<T> {
         // If first line starts with a delimiter followed by newline, we are looking at front
         // matter. Else, we might be looking at an excerpt.
         let (mut looking_at, lines) = match input.split_once('\n') {
-            Some((first_line, rest)) if first_line.trim_end() == self.delimiter => (Part::Matter, rest.lines()),
-            _ => (Part::MaybeExcerpt, input.lines())
+            Some((first_line, rest)) if first_line.trim_end() == self.delimiter => {
+                (Part::Matter, rest.lines())
+            }
+            _ => (Part::MaybeExcerpt, input.lines()),
         };
 
         let mut acc = String::new();
