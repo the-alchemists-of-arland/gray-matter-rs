@@ -69,20 +69,11 @@ impl<T: Engine> Matter<T> {
             .clone()
             .unwrap_or_else(|| self.delimiter.clone());
 
-        let mut lines = input.lines();
-
         // If first line starts with a delimiter followed by newline, we are looking at front
         // matter. Else, we might be looking at an excerpt.
-        // FIXME: We are only trimming the start of the line. We might have a delimiter with
-        // whitespace after: `---  \n`. gray_matter should handle this.
-        let mut looking_at = if input
-            .trim_start()
-            .starts_with(&(self.delimiter.clone() + "\n"))
-        {
-            lines.next();
-            Part::Matter
-        } else {
-            Part::MaybeExcerpt
+        let (mut looking_at, lines) = match input.split_once('\n') {
+            Some((first_line, rest)) if first_line.trim_end() == self.delimiter => (Part::Matter, rest.lines()),
+            _ => (Part::MaybeExcerpt, input.lines())
         };
 
         let mut acc = String::new();
@@ -91,7 +82,7 @@ impl<T: Engine> Matter<T> {
             acc += &format!("\n{}", line);
             match looking_at {
                 Part::Matter => {
-                    if line.trim() == self.delimiter {
+                    if line.trim_end() == self.delimiter {
                         let comment_re = Regex::new(r"(?m)^\s*#[^\n]+").unwrap();
                         let matter = comment_re
                             .replace_all(&acc, "")
@@ -112,7 +103,7 @@ impl<T: Engine> Matter<T> {
                 }
 
                 Part::MaybeExcerpt => {
-                    if line.trim() == excerpt_delimiter {
+                    if line.trim_end() == excerpt_delimiter {
                         parsed_entity.excerpt = Some(
                             acc.trim()
                                 .strip_suffix(&excerpt_delimiter)
@@ -349,10 +340,10 @@ mod tests {
         let result: ParsedEntityStruct<FrontMatterName> = matter
             .parse_with_struct(
                 r#"---
-    name: "troublesome --- value"
-    ---
-    here is some content
-    "#,
+name: "troublesome --- value"
+---
+here is some content
+"#,
             )
             .unwrap();
         let data_expected = FrontMatterName {
