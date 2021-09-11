@@ -97,7 +97,7 @@ impl<T: Engine> Matter<T> {
                             .replace_all(&acc, "")
                             .trim()
                             .strip_suffix(&self.delimiter)
-                            .unwrap()
+                            .expect("Could not strip front matter delimiter. You should not be able to get this message")
                             .trim_matches('\n')
                             .to_string();
 
@@ -115,10 +115,8 @@ impl<T: Engine> Matter<T> {
                     if line.trim() == excerpt_delimiter {
                         parsed_entity.excerpt = Some(
                             acc.trim()
-                                .strip_prefix(&self.delimiter)
-                                .unwrap_or(&acc)
                                 .strip_suffix(&excerpt_delimiter)
-                                .unwrap()
+                                .expect("Could not strip excerpt delimiter. You should not be able to get this message")
                                 .trim_matches('\n')
                                 .to_string(),
                         );
