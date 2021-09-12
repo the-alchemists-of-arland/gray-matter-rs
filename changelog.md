@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1
+
+### Enhancements
+
+- gray-matter is now more strict with delimiters and whitespace on the same line. Previously, whitespace was allowed both before and after the delimiter. Now, you can only have whitespace after the delimiter.
+- gray-matter is also less strict with the first delimiter. It does not allow whitespace at the start of the line, but does so at the end (which it did not previously).
+
+### Bug fixes
+
+- Fixed a panic that was thrown when two delimiters directly followed eachother.
+
 ## 0.2.0
 
 ### Major changes
