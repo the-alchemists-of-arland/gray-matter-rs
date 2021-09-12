@@ -369,6 +369,16 @@ here is some content
             result.data.is_none(),
             "should not try to parse a string has content that looks like front-matter"
         );
+        let result = matter.parse("---\nname: ---\n---\n---\n");
+        assert_eq!(
+            result.content, "---",
+            "should correctly handle rogue delimiter"
+        );
+        let result = matter.parse("---\nname: bar\n---\n---\n---");
+        assert_eq!(
+            result.content, "---\n---",
+            "should correctly handle two rogue delimiter"
+        );
     }
 
     #[test]
