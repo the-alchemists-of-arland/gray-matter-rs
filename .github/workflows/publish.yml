@@ -6,7 +6,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
-    container: rust:1.49
+    container: rust:1.55
     steps:
       - uses: actions/checkout@v2
       - name: Cache Dependencies
@@ -22,7 +22,7 @@ jobs:
         run: cargo test
   publish:
     runs-on: ubuntu-20.04
-    container: rust:1.49
+    container: rust:1.55
     needs: [test]
     steps:
       - uses: actions/checkout@v2
