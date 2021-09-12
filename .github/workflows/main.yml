@@ -13,7 +13,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
-    container: rust:1.49
+    container: rust:1.55
     steps:
       - uses: actions/checkout@v2
       - name: Cache Dependencies

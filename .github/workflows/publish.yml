@@ -6,7 +6,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
-    container: rust:1.49
+    container: rust:1.55
     steps:
       - uses: actions/checkout@v2
       - name: Cache Dependencies
@@ -22,7 +22,7 @@ jobs:
         run: cargo test
   publish:
     runs-on: ubuntu-20.04
-    container: rust:1.49
+    container: rust:1.55
     needs: [test]
     steps:
       - uses: actions/checkout@v2
@@ -39,11 +39,11 @@ jobs:
         id: tagName
         name: Get Tag Name
         with:
-          tagRegex: "v(.*)"
+          tagRegex: "v(?<version>.*)"
       - name: Set Package Version
         env:
-          GIT_TAG_NAME: ${{ steps.tagName.outputs.tag }}
-        run: sed -i "s/version = \"v0.1.0\"/version = \"${GIT_TAG_NAME}\"/" Cargo.toml
+          GIT_TAG_NAME: ${{ steps.tagName.outputs.version }}
+        run: sed -i "s/version = \"0.1.0\"/version = \"${GIT_TAG_NAME}\"/" Cargo.toml
       - name: Cargo Login
         env:
           CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
