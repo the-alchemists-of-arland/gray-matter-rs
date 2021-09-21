@@ -12,18 +12,17 @@ on:
       - v*
 jobs:
   test:
-    runs-on: ubuntu-20.04
-    container: rust:1.55
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [nightly, beta, stable]
+        os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Cache Dependencies
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-dependencies
+      - uses: actions-rs/toolchain@v1
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
+          toolchain: ${{matrix.rust}}
+          profile: minimal
       - name: Run Tests
         run: cargo test
