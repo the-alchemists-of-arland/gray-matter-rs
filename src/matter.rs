@@ -105,7 +105,7 @@ impl<T: Engine> Matter<T> {
                 }
 
                 Part::MaybeExcerpt => {
-                    if line.trim_end() == excerpt_delimiter {
+                    if line.trim_end().ends_with(&excerpt_delimiter) {
                         parsed_entity.excerpt = Some(
                             acc.trim()
                                 .strip_suffix(&excerpt_delimiter)
@@ -263,6 +263,26 @@ mod tests {
         assert_eq!(
             true,
             result.content == "foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent".to_string(),
+            "should use a custom separator"
+        );
+        assert_eq!(
+            result.excerpt.unwrap(),
+            "foo\nbar\nbaz",
+            "should get excerpt as \"foo\nbar\nbaz\""
+        );
+
+        // Check that the endexcerpt delimiter can be on the same line
+        let result: ParsedEntityStruct<FrontMatter> = matter
+            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent")
+            .unwrap();
+        assert_eq!(
+            true,
+            result.data.abc == "xyz".to_string(),
+            "should get front matter xyz as value of abc"
+        );
+        assert_eq!(
+            true,
+            result.content == "foo\nbar\nbaz<!-- endexcerpt -->\ncontent".to_string(),
             "should use a custom separator"
         );
         assert_eq!(
