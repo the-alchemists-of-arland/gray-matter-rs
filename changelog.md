@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+### Enhancements
+
+- Excerpt delimiter is now allowed to be on the same line with excerpt content.
+
 ## 0.2.1
 
 ### Enhancements
