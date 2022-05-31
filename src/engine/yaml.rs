@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::Pod;
+use std::collections::HashMap;
 use yaml_rust::{Yaml, YamlLoader};
 
 /// [`Engine`](crate::engine::Engine) for the [YAML](https://yaml.org) configuration format.
@@ -28,24 +29,32 @@ impl Into<Pod> for Yaml {
             Yaml::String(val) => Pod::String(val),
             Yaml::Boolean(val) => Pod::Boolean(val),
             Yaml::Array(val) => {
-                let mut pod = Pod::new_array();
-                for (index, item) in val.into_iter().enumerate() {
-                    pod[index] = item.into();
-                }
-                pod
+                val.iter()
+                    .map(|elem| elem.into())
+                    .collect::<Vec<Pod>>()
+                    .into()
             }
             Yaml::Hash(val) => {
-                let mut pod = Pod::new_hash();
-                for (key, val) in val.into_iter() {
-                    pod[key.as_str().unwrap()] = val.into();
-                }
-                pod
+                val.iter()
+                    // FIXME: Here we assume that the key is a string. That is indeed the most
+                    // common case, but in YAML, any value can be a key. We've managed well with
+                    // only string keys so far, but we should handle this properly in the future.
+                    .map(|(key, elem)| (key.to_owned().into_string().unwrap(), elem.into()))
+                    .collect::<HashMap<String, Pod>>()
+                    .into()
             }
             Yaml::Null => Pod::Null,
             _ => Pod::Null,
         }
     }
 }
+
+impl From<&Yaml> for Pod {
+    fn from(val: &Yaml) -> Self {
+        val.to_owned().into()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::engine::yaml::YAML;
