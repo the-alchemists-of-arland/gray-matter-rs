@@ -1,49 +1,54 @@
 use crate::engine::Engine;
 use crate::Pod;
-use json::JsonValue;
+use serde_json::Value;
+use std::collections::HashMap;
 
 /// [`Engine`](crate::engine::Engine) for the [JSON](https://www.json.org/) configuration format.
 pub struct JSON;
 
 impl Engine for JSON {
     fn parse(content: &str) -> Pod {
-        match json::parse(content) {
+        match content.parse::<Value>() {
             Ok(data) => data.into(),
             Err(_) => Pod::Null,
         }
     }
 }
 
-impl Into<Pod> for JsonValue {
-    fn into(self) -> Pod {
-        match self {
-            JsonValue::Null => Pod::Null,
-            JsonValue::Short(val) => Pod::String(val.as_str().to_string()),
-            JsonValue::String(val) => Pod::String(val),
-            JsonValue::Number(val) => {
-                let val_string = val.to_string();
-                if val_string.contains('.') {
-                    Pod::Float(val_string.parse().unwrap_or(0 as f64))
+impl From<Value> for Pod {
+    fn from(json_val: Value) -> Self {
+        match json_val {
+            Value::Null => Pod::Null,
+            Value::String(val) => Pod::String(val),
+            Value::Number(val) => {
+                if let Some(int) = val.as_i64() {
+                    Pod::Integer(int)
                 } else {
-                    Pod::Integer(val_string.parse().unwrap_or(0))
+                    // NOTE: Looking at the source of serde_json, it looks like `as_f64` will
+                    // always be Some. https://docs.rs/serde_json/latest/src/serde_json/number.rs.html#240-249
+                    Pod::Float(val.as_f64().unwrap())
                 }
             }
-            JsonValue::Boolean(val) => Pod::Boolean(val),
-            JsonValue::Array(val) => {
-                let mut pod = Pod::new_array();
-                for (index, item) in val.into_iter().enumerate() {
-                    pod[index] = item.into();
-                }
-                pod
+            Value::Bool(val) => Pod::Boolean(val),
+            Value::Array(val) => {
+                val.iter()
+                    .map(|elem| elem.into())
+                    .collect::<Vec<Pod>>()
+                    .into()
             }
-            JsonValue::Object(val) => {
-                let mut pod = Pod::new_hash();
-                for (key, val) in val.iter() {
-                    pod[key] = (*val).clone().into();
-                }
-                pod
+            Value::Object(val) => {
+                val.iter()
+                    .map(|(key, elem)| (key.to_owned(), elem.into()))
+                    .collect::<HashMap<String, Pod>>()
+                    .into()
             }
         }
+    }
+}
+
+impl From<&Value> for Pod {
+    fn from(val: &Value) -> Self {
+        val.to_owned().into()
     }
 }
 
