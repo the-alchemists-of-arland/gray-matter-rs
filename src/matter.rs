@@ -1,6 +1,5 @@
 use crate::engine::Engine;
 use crate::{ParsedEntity, ParsedEntityStruct};
-use regex::Regex;
 use std::marker::PhantomData;
 
 enum Part {
@@ -85,9 +84,7 @@ impl<T: Engine> Matter<T> {
             match looking_at {
                 Part::Matter => {
                     if line.trim_end() == self.delimiter {
-                        let comment_re = Regex::new(r"(?m)^\s*#[^\n]+").unwrap();
-                        let matter = comment_re
-                            .replace_all(&acc, "")
+                        let matter = acc
                             .trim()
                             .strip_suffix(&self.delimiter)
                             .expect("Could not strip front matter delimiter. You should not be able to get this message")
@@ -214,7 +211,6 @@ mod tests {
             "---\n---\nThis is content",
             "---\n\n---\nThis is content",
             "---\n\n\n\n\n\n---\nThis is content",
-            "---\n # this is a comment\n# another one\n# yet another\n---\nThis is content",
         ];
         for input in table.into_iter() {
             let result = matter.parse(input);
