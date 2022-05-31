@@ -1,7 +1,7 @@
 use crate::engine::Engine;
 use crate::Pod;
 use std::collections::HashMap;
-use yaml_rust::{Yaml, YamlLoader};
+use yaml::{Yaml, YamlLoader};
 
 /// [`Engine`](crate::engine::Engine) for the [YAML](https://yaml.org) configuration format.
 pub struct YAML;
@@ -28,12 +28,11 @@ impl Into<Pod> for Yaml {
             Yaml::Integer(val) => Pod::Integer(val),
             Yaml::String(val) => Pod::String(val),
             Yaml::Boolean(val) => Pod::Boolean(val),
-            Yaml::Array(val) => {
-                val.iter()
-                    .map(|elem| elem.into())
-                    .collect::<Vec<Pod>>()
-                    .into()
-            }
+            Yaml::Array(val) => val
+                .iter()
+                .map(|elem| elem.into())
+                .collect::<Vec<Pod>>()
+                .into(),
             Yaml::Hash(val) => {
                 val.iter()
                     // FIXME: Here we assume that the key is a string. That is indeed the most

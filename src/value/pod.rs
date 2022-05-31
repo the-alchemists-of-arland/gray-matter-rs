@@ -31,8 +31,8 @@ impl Pod {
     /// **Note**: The function coerces `self` into a
     /// [`serde_json::Value`](https://docs.rs/serde_json/1.0.66/serde_json/enum.Value.html) in
     /// order to work around implementing a custom `Deserializer` for `Pod`.
-    pub fn deserialize<T: DeserializeOwned>(&self) -> serde_json::Result<T> {
-        use serde_json::{from_value, Value};
+    pub fn deserialize<T: DeserializeOwned>(&self) -> json::Result<T> {
+        use json::{from_value, Value};
         let value: Value = self.clone().into();
         let ret: T = from_value(value)?;
         Ok(ret)
@@ -298,10 +298,10 @@ impl IndexMut<String> for Pod {
     }
 }
 
-impl Into<serde_json::Value> for Pod {
-    fn into(self) -> serde_json::Value {
-        use serde_json::json;
-        use serde_json::Value::*;
+impl Into<json::Value> for Pod {
+    fn into(self) -> json::Value {
+        use json::json;
+        use json::Value::*;
         match self {
             Pod::Null => Null,
             Pod::String(val) => json!(val),
@@ -309,14 +309,14 @@ impl Into<serde_json::Value> for Pod {
             Pod::Float(val) => json!(val),
             Pod::Boolean(val) => json!(val),
             Pod::Array(val) => {
-                let mut vec: Vec<serde_json::Value> = vec![];
+                let mut vec: Vec<json::Value> = vec![];
                 for item in val.into_iter() {
                     vec.push(item.into());
                 }
                 Array(vec)
             }
             Pod::Hash(val) => {
-                use serde_json::Map;
+                use json::Map;
                 let mut hash = Map::new();
                 for (key, value) in val.into_iter() {
                     hash.insert(key, value.into());

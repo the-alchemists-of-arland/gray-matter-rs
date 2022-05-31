@@ -1,6 +1,6 @@
 [package]
 name = "gray_matter"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["yuchanns <airamusume@gmail.com>", "Knut Magnus Aasrud <km@aasrud.com>"]
 edition = "2018"
 license = "MIT"
@@ -15,9 +15,12 @@ exclude = [
 
 [dependencies]
 serde = { version = "1.0.137", features = ["derive"] }
-serde_json = "1.0.81"
-toml = "0.5.9"
-yaml-rust = "0.4.5"
+json = { package = "serde_json", version = "1.0.81" }
+toml = { version = "0.5.9", optional = true }
+yaml = { package = "yaml-rust", version = "0.4.5", optional = true }
+
+[features]
+default = ["toml", "yaml"]
 
 [dev-dependencies]
 cargo-husky = { version = "1", features = ["precommit-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"] }

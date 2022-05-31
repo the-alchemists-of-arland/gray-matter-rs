@@ -39,8 +39,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<serde_json::Error> for Error {
-    fn from(err: serde_json::Error) -> Self {
+impl From<json::Error> for Error {
+    fn from(err: json::Error) -> Self {
         Error::deserialize_error(err.to_string())
     }
 }

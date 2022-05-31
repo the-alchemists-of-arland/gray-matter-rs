@@ -1,6 +1,6 @@
 use crate::engine::Engine;
 use crate::Pod;
-use serde_json::Value;
+use json::Value;
 use std::collections::HashMap;
 
 /// [`Engine`](crate::engine::Engine) for the [JSON](https://www.json.org/) configuration format.
@@ -30,18 +30,16 @@ impl From<Value> for Pod {
                 }
             }
             Value::Bool(val) => Pod::Boolean(val),
-            Value::Array(val) => {
-                val.iter()
-                    .map(|elem| elem.into())
-                    .collect::<Vec<Pod>>()
-                    .into()
-            }
-            Value::Object(val) => {
-                val.iter()
-                    .map(|(key, elem)| (key.to_owned(), elem.into()))
-                    .collect::<HashMap<String, Pod>>()
-                    .into()
-            }
+            Value::Array(val) => val
+                .iter()
+                .map(|elem| elem.into())
+                .collect::<Vec<Pod>>()
+                .into(),
+            Value::Object(val) => val
+                .iter()
+                .map(|(key, elem)| (key.to_owned(), elem.into()))
+                .collect::<HashMap<String, Pod>>()
+                .into(),
         }
     }
 }

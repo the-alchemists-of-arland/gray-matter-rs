@@ -22,18 +22,16 @@ impl From<Value> for Pod {
             Value::Integer(val) => Pod::Integer(val),
             Value::Float(val) => Pod::Float(val),
             Value::Boolean(val) => Pod::Boolean(val),
-            Value::Array(val) => {
-                val.iter()
-                    .map(|elem| elem.into())
-                    .collect::<Vec<Pod>>()
-                    .into()
-            }
-            Value::Table(val) => {
-                val.iter()
-                    .map(|(key, elem)| (key.to_owned(), elem.into()))
-                    .collect::<HashMap<String, Pod>>()
-                    .into()
-            }
+            Value::Array(val) => val
+                .iter()
+                .map(|elem| elem.into())
+                .collect::<Vec<Pod>>()
+                .into(),
+            Value::Table(val) => val
+                .iter()
+                .map(|(key, elem)| (key.to_owned(), elem.into()))
+                .collect::<HashMap<String, Pod>>()
+                .into(),
             Value::Datetime(val) => Pod::String(val.to_string()),
         }
     }
