@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+### Enhancements
+
+- Smaller footprint. A few dependencies have been removed, and the in-house YAML and TOML engines are now optional.
+
 ## 0.2.2
 
 ### Enhancements
@@ -47,7 +53,7 @@
 
 - Flatter API structure. You can now get access to most core structs and enums at the crate base. These are `Matter`, `ParsedEntity`, `ParsedEntityStruct`, `Error` and `Pod`. Engines are also made more accessible, being located directly in the `engine` module, like `gray_matter::engine::TOML`.
 - Changes to `Matter` function names, to avoid repeated names and give a friendlier interface:
-  
+
     - `Matter::matter` -> `Matter::parse`
     - `Matter::matter_struct` -> `Matter::parse_with_struct`
 

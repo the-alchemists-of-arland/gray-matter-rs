@@ -2,15 +2,19 @@ use crate::Pod;
 
 #[doc(hidden)]
 pub mod json;
+#[cfg(feature = "toml")]
 #[doc(hidden)]
 pub mod toml;
+#[cfg(feature = "yaml")]
 #[doc(hidden)]
 pub mod yaml;
 
 #[doc(inline)]
 pub use crate::engine::json::JSON;
+#[cfg(feature = "toml")]
 #[doc(inline)]
 pub use crate::engine::toml::TOML;
+#[cfg(feature = "yaml")]
 #[doc(inline)]
 pub use crate::engine::yaml::YAML;
 

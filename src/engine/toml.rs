@@ -1,42 +1,45 @@
 use crate::engine::Engine;
 use crate::Pod;
-use toml::Value as TomlValue;
+use std::collections::HashMap;
+use toml::Value;
 
 /// [`Engine`](crate::engine::Engine) for the [TOML](https://toml.io/) configuration format.
 pub struct TOML;
 
 impl Engine for TOML {
     fn parse(content: &str) -> Pod {
-        match toml::from_str::<TomlValue>(content) {
+        match toml::from_str::<Value>(content) {
             Ok(value) => value.into(),
-            Err(..) => Pod::Null,
+            Err(_) => Pod::Null,
         }
     }
 }
 
-impl Into<Pod> for TomlValue {
-    fn into(self) -> Pod {
-        match self {
-            TomlValue::String(val) => Pod::String(val),
-            TomlValue::Integer(val) => Pod::Integer(val),
-            TomlValue::Float(val) => Pod::Float(val),
-            TomlValue::Boolean(val) => Pod::Boolean(val),
-            TomlValue::Array(val) => {
-                let mut pod = Pod::new_array();
-                for (index, item) in val.into_iter().enumerate() {
-                    pod[index] = item.into();
-                }
-                pod
-            }
-            TomlValue::Table(val) => {
-                let mut pod = Pod::new_hash();
-                for (key, val) in val.into_iter() {
-                    pod[key] = val.into();
-                }
-                pod
-            }
-            TomlValue::Datetime(val) => Pod::String(val.to_string()),
+impl From<Value> for Pod {
+    fn from(toml_value: Value) -> Self {
+        match toml_value {
+            Value::String(val) => Pod::String(val),
+            Value::Integer(val) => Pod::Integer(val),
+            Value::Float(val) => Pod::Float(val),
+            Value::Boolean(val) => Pod::Boolean(val),
+            Value::Array(val) => val
+                .iter()
+                .map(|elem| elem.into())
+                .collect::<Vec<Pod>>()
+                .into(),
+            Value::Table(val) => val
+                .iter()
+                .map(|(key, elem)| (key.to_owned(), elem.into()))
+                .collect::<HashMap<String, Pod>>()
+                .into(),
+            Value::Datetime(val) => Pod::String(val.to_string()),
         }
+    }
+}
+
+impl From<&Value> for Pod {
+    fn from(val: &Value) -> Self {
+        val.to_owned().into()
     }
 }
 
