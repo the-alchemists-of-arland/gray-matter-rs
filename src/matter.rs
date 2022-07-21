@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::{ParsedEntity, ParsedEntityStruct};
+use std::fmt::Write;
 use std::marker::PhantomData;
 
 enum Part {
@@ -79,17 +80,11 @@ impl<T: Engine> Matter<T> {
 
         let mut acc = String::new();
         for line in lines {
-            line.to_string().push('\n');
-            acc += &format!("\n{}", line);
+            let line = line.trim_end();
             match looking_at {
                 Part::Matter => {
-                    if line.trim_end() == self.delimiter {
-                        let matter = acc
-                            .trim()
-                            .strip_suffix(&self.delimiter)
-                            .expect("Could not strip front matter delimiter. You should not be able to get this message")
-                            .trim_matches('\n')
-                            .to_string();
+                    if line == self.delimiter {
+                        let matter = acc.trim().to_string();
 
                         if !matter.is_empty() {
                             parsed_entity.data = Some(T::parse(&matter));
@@ -98,17 +93,20 @@ impl<T: Engine> Matter<T> {
 
                         acc = String::new();
                         looking_at = Part::MaybeExcerpt;
+                        continue;
                     }
                 }
 
                 Part::MaybeExcerpt => {
-                    if line.trim_end().ends_with(&excerpt_delimiter) {
+                    if line.ends_with(&excerpt_delimiter) {
                         parsed_entity.excerpt = Some(
-                            acc.trim()
-                                .strip_suffix(&excerpt_delimiter)
-                                .expect("Could not strip excerpt delimiter. You should not be able to get this message")
-                                .trim_matches('\n')
-                                .to_string(),
+                            format!(
+                                "{}\n{}",
+                                acc.trim_start_matches('\n'),
+                                line.strip_suffix(&excerpt_delimiter).unwrap(),
+                            )
+                            .trim_end()
+                            .to_string(),
                         );
 
                         looking_at = Part::Content;
@@ -117,9 +115,11 @@ impl<T: Engine> Matter<T> {
 
                 Part::Content => {}
             }
+
+            write!(&mut acc, "\n{}", line).unwrap();
         }
 
-        parsed_entity.content = acc.trim().to_string();
+        parsed_entity.content = acc.trim_start_matches('\n').to_string();
 
         parsed_entity
     }
@@ -215,10 +215,7 @@ mod tests {
         for input in table.into_iter() {
             let result = matter.parse(input);
             assert!(result.data.is_none(), "should get no front matter");
-            assert_eq!(
-                result.content, "This is content",
-                "should get content as \"This is content\""
-            );
+            assert_eq!(result.content, "This is content");
         }
     }
 
@@ -413,5 +410,21 @@ float = 3.14159265
 
         assert_eq!(result.data.int, 42 as i64);
         assert_eq!(result.data.float, 3.14159265 as f64);
+    }
+
+    #[test]
+    fn test_whitespace_content() {
+        let raw = r#"---
+field1 = "Value"
+field2 = [3.14, 42]
+---
+
+    this is code block
+
+# This is header"#;
+        let matter: Matter<TOML> = Matter::new();
+        let result = matter.parse(raw);
+
+        assert_eq!(result.content, "    this is code block\n\n# This is header")
     }
 }
