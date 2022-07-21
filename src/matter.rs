@@ -427,4 +427,20 @@ field2 = [3.14, 42]
 
         assert_eq!(result.content, "    this is code block\n\n# This is header")
     }
+
+    #[test]
+    fn test_whitespace_without_frontmatter() {
+        let matter: Matter<YAML> = Matter::new();
+        let raw = r#"    An excerpt
+---
+    This is my content"#;
+        let result = matter.parse(raw);
+
+        assert_eq!(
+            result.content,
+            "    An excerpt\n---\n    This is my content"
+        );
+
+        assert_eq!(result.excerpt.unwrap(), "    An excerpt".to_string());
+    }
 }
