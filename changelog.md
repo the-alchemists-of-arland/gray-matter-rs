@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+### Bug fixes
+
+- Fixed overeager whitespace trimming.
+
 ## 0.2.3
 
 ### Enhancements
