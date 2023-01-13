@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.5
+
+### Enhancements
+
+- Support non-string keys in YAML.
+
 ## 0.2.4
 
 ### Bug fixes
