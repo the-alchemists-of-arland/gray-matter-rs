@@ -33,15 +33,22 @@ impl Into<Pod> for Yaml {
                 .map(|elem| elem.into())
                 .collect::<Vec<Pod>>()
                 .into(),
-            Yaml::Hash(val) => {
-                val.iter()
-                    // FIXME: Here we assume that the key is a string. That is indeed the most
-                    // common case, but in YAML, any value can be a key. We've managed well with
-                    // only string keys so far, but we should handle this properly in the future.
-                    .map(|(key, elem)| (key.to_owned().into_string().unwrap(), elem.into()))
-                    .collect::<HashMap<String, Pod>>()
-                    .into()
-            }
+            Yaml::Hash(val) => val
+                .iter()
+                .filter_map(|(key, elem)| {
+                    let key = match key {
+                        Yaml::String(s) | Yaml::Real(s) => s.to_string(),
+                        Yaml::Boolean(b) => b.to_string(),
+                        Yaml::Integer(i) => i.to_string(),
+                        Yaml::Null => "null".to_string(),
+                        // Other types should not be expressible as keys.
+                        _ => return None,
+                    };
+
+                    Some((key, elem.into()))
+                })
+                .collect::<HashMap<String, Pod>>()
+                .into(),
             Yaml::Null => Pod::Null,
             _ => Pod::Null,
         }
@@ -79,6 +86,34 @@ three: baz
             one: "foo".to_string(),
             two: "bar".to_string(),
             three: "baz".to_string(),
+        };
+        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
+        assert_eq!(result.data, data_expected);
+    }
+
+    #[test]
+    fn non_string_keys() {
+        let matter: Matter<YAML> = Matter::new();
+        let input = r#"---
+1: foo
+true: bar
+three: baz
+null: boo
+---"#;
+        #[derive(Deserialize, PartialEq, Debug)]
+        struct FrontMatter {
+            #[serde(rename = "1")]
+            one: String,
+            #[serde(rename = "true")]
+            two: String,
+            three: String,
+            null: String,
+        }
+        let data_expected = FrontMatter {
+            one: "foo".to_string(),
+            two: "bar".to_string(),
+            three: "baz".to_string(),
+            null: "boo".to_string(),
         };
         let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
         assert_eq!(result.data, data_expected);
