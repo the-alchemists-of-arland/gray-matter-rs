@@ -98,6 +98,12 @@ fn main() {
 }
 ```
 
+## Contributors
+<a href="https://github.com/the-alchemists-of-arland/gray-matter-rs/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=the-alchemists-of-arland/gray-matter-rs" />
+</a>
+
 ## Contribution
 
 If you need more parser engines, feel free to create a **PR** to help me complete this crate.
+
