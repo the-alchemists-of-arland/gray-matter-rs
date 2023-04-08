@@ -22,8 +22,8 @@ impl Display for Error {
         use Error::*;
 
         match *self {
-            TypeError(ref s) => write!(f, "Type error, expected: {}", s),
-            DeserializeError(ref s) => write!(f, "Deserialize error: {}", s),
+            TypeError(ref s) => write!(f, "Type error, expected: {s}"),
+            DeserializeError(ref s) => write!(f, "Deserialize error: {s}"),
         }
     }
 }

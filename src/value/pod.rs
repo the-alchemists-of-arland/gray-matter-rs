@@ -329,27 +329,21 @@ impl Into<json::Value> for Pod {
 
 #[test]
 fn test_partial_compare_null() -> std::result::Result<(), Error> {
-    assert_eq!(true, Pod::Null == Pod::Null);
+    assert!(Pod::Null == Pod::Null);
     Ok(())
 }
 
 #[test]
 fn test_partial_compare_boolean() -> std::result::Result<(), Error> {
-    assert_eq!(true, Pod::Boolean(true) == Pod::Boolean(true));
-    assert_eq!(false, Pod::Boolean(true) == Pod::Boolean(false));
+    assert!(Pod::Boolean(true) == Pod::Boolean(true));
+    assert!(Pod::Boolean(true) != Pod::Boolean(false));
     Ok(())
 }
 
 #[test]
 fn test_partial_compare_string() -> std::result::Result<(), Error> {
-    assert_eq!(
-        true,
-        Pod::String("hello".into()) == Pod::String("hello".into())
-    );
-    assert_eq!(
-        false,
-        Pod::String("hello".into()) == Pod::String("world".into())
-    );
+    assert!(Pod::String("hello".into()) == Pod::String("hello".into()));
+    assert!(Pod::String("hello".into()) != Pod::String("world".into()));
     Ok(())
 }
 
@@ -357,16 +351,16 @@ fn test_partial_compare_string() -> std::result::Result<(), Error> {
 fn test_partial_compare_array() -> std::result::Result<(), Error> {
     let mut a = Pod::new_array();
     let mut b = a.clone();
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a.push(Pod::Boolean(true))?;
     b.push(Pod::Boolean(true))?;
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a.push(Pod::String("hello".into()))?;
     b.push(Pod::String("hello".into()))?;
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a.push(Pod::String("world".into()))?;
     b.push(Pod::String("world!".into()))?;
-    assert_eq!(false, a == b);
+    assert!(a != b);
     Ok(())
 }
 
@@ -374,21 +368,21 @@ fn test_partial_compare_array() -> std::result::Result<(), Error> {
 fn test_partial_compare_hash() -> std::result::Result<(), Error> {
     let mut a = Pod::new_hash();
     let mut b = a.clone();
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a["hello"] = Pod::String("world".into());
     b["hello"] = Pod::String("world".into());
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a["map"] = a.clone();
     b["map"] = b.clone();
-    assert_eq!(true, a == b);
+    assert!(a == b);
     a["boolean"] = Pod::Boolean(true);
     b["boolean"] = Pod::Boolean(false);
-    assert_eq!(false, a == b);
-    assert_eq!(true, a.remove("boolean".to_string()) == Pod::Boolean(true));
-    assert_eq!(true, b.remove("boolean".to_string()) == Pod::Boolean(false));
-    assert_eq!(true, a == b);
+    assert!(a != b);
+    assert!(a.remove("boolean".to_string()) == Pod::Boolean(true));
+    assert!(b.remove("boolean".to_string()) == Pod::Boolean(false));
+    assert!(a == b);
     b["hello"] = Pod::String("world!".into());
-    assert_eq!(false, a == b);
+    assert!(a != b);
     Ok(())
 }
 
@@ -396,7 +390,7 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
 fn test_partial_compare_integer() -> std::result::Result<(), Error> {
     let a = Pod::Integer(16);
     let b = Pod::Integer(16);
-    assert_eq!(true, a == b);
+    assert!(a == b);
     Ok(())
 }
 
@@ -427,14 +421,11 @@ fn test_index_usize() -> std::result::Result<(), Error> {
     a[0] = Pod::String("hello".into());
     a[1] = Pod::Boolean(true);
     let b = a.clone();
-    assert_eq!(true, b[0] == Pod::String("hello".into()));
-    assert_eq!(true, b[1] == Pod::Boolean(true));
+    assert!(b[0] == Pod::String("hello".into()));
+    assert!(b[1] == Pod::Boolean(true));
     let mut string = a[0].take();
     string[0] = Pod::String("world".to_string());
-    assert_eq!(
-        true,
-        string == Pod::Array(vec![Pod::String("world".to_string())])
-    );
+    assert!(string == Pod::Array(vec![Pod::String("world".to_string())]));
     Ok(())
 }
 
@@ -444,13 +435,12 @@ fn test_index_str() -> std::result::Result<(), Error> {
     a["hello"] = Pod::String("world".into());
     a["bool"] = Pod::Boolean(false);
     let b = a.clone();
-    assert_eq!(true, a["hello"] == b["hello"]);
-    assert_eq!(true, a["bool"] == b["bool"]);
+    assert!(a["hello"] == b["hello"]);
+    assert!(a["bool"] == b["bool"]);
     let mut string = a["hello"].take();
     string["world"] = Pod::String("world".to_string());
 
-    assert_eq!(
-        true,
+    assert!(
         string
             == Pod::Hash(
                 vec![("world".to_string(), Pod::String("world".to_string()))]
@@ -464,21 +454,21 @@ fn test_index_str() -> std::result::Result<(), Error> {
 #[test]
 fn test_pod_from_into() -> std::result::Result<(), Error> {
     let a: String = Pod::from("hello".to_string()).into();
-    assert_eq!(true, a == String::from("hello"));
+    assert!(a == *"hello");
     let b: i64 = Pod::from(1).into();
-    assert_eq!(true, b == 1);
+    assert!(b == 1);
     let c: f64 = Pod::from(2.33).into();
-    assert_eq!(true, c == 2.33);
+    assert!(c == 2.33);
     let d: bool = Pod::from(true).into();
-    assert_eq!(true, d == true);
+    assert!(d);
     let e_i = vec![Pod::String("hello".to_string())];
     let e: Vec<Pod> = Pod::from(e_i.clone()).into();
-    assert_eq!(true, e == e_i);
+    assert!(e == e_i);
     let f_i = vec![("hello".to_string(), Pod::String("world".to_string()))]
         .into_iter()
         .collect::<HashMap<String, Pod>>();
     let f: HashMap<String, Pod> = Pod::from(f_i.clone()).into();
-    assert_eq!(true, f == f_i);
+    assert!(f == f_i);
     Ok(())
 }
 
@@ -498,6 +488,6 @@ fn test_pod_deserialize() -> std::result::Result<(), Error> {
         title: "hello".to_string(),
         tags: vec!["gray-matter-rust".to_string()],
     };
-    assert_eq!(true, cfg == cfg_expected);
+    assert!(cfg == cfg_expected);
     Ok(())
 }

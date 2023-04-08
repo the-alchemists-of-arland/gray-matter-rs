@@ -46,8 +46,7 @@ fn test_basic() {
     };
     assert_eq!(
         result.data, data_expected,
-        "should get front matter as {:?}",
-        data_expected
+        "should get front matter as {data_expected:?}"
     );
     assert_eq!(
         result.content, "this is content.",
@@ -78,8 +77,7 @@ fn test_parse_complex_yaml_front_matter() {
     };
     assert_eq!(
         result.data, data_expected,
-        "should get front matter as {:?}",
-        data_expected
+        "should get front matter as {data_expected:?}"
     );
     assert!(!result.content.is_empty(), "should get content");
     assert!(result.excerpt.is_some(), "should get excerpt")
@@ -115,8 +113,7 @@ fn test_all_matter() {
         !result.content.is_empty(),
         "Parsing `all.yaml` should give non-empty `content`."
     );
-    assert_eq!(
-        true,
+    assert!(
         result.excerpt.is_none(),
         "Parsing `all.yaml` should give `excerpt` = None."
     );

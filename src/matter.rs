@@ -116,7 +116,7 @@ impl<T: Engine> Matter<T> {
                 Part::Content => {}
             }
 
-            write!(&mut acc, "\n{}", line).unwrap();
+            write!(&mut acc, "\n{line}").unwrap();
         }
 
         parsed_entity.content = acc.trim_start_matches('\n').to_string();
@@ -184,11 +184,10 @@ mod tests {
         let mut matter: Matter<YAML> = Matter::new();
         let result: ParsedEntityStruct<FrontMatter> =
             matter.parse_with_struct("---\nabc: xyz\n---").unwrap();
-        assert_eq!(
-            true,
+        assert!(
             result.data == front_matter,
-            "should get front matter as {:?}",
-            front_matter
+            "{}",
+            "should get front matter as {front_matter:?}",
         );
         matter.delimiter = "~~~".to_string();
         let result = matter.parse("---\nabc: xyz\n---");
@@ -248,14 +247,12 @@ mod tests {
         let result: ParsedEntityStruct<FrontMatter> = matter
             .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent")
             .unwrap();
-        assert_eq!(
-            true,
-            result.data.abc == "xyz".to_string(),
+        assert!(
+            result.data.abc == *"xyz",
             "should get front matter xyz as value of abc"
         );
-        assert_eq!(
-            true,
-            result.content == "foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent".to_string(),
+        assert!(
+            result.content == *"foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
             "should use a custom separator"
         );
         assert_eq!(
@@ -268,14 +265,12 @@ mod tests {
         let result: ParsedEntityStruct<FrontMatter> = matter
             .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent")
             .unwrap();
-        assert_eq!(
-            true,
-            result.data.abc == "xyz".to_string(),
+        assert!(
+            result.data.abc == *"xyz",
             "should get front matter xyz as value of abc"
         );
-        assert_eq!(
-            true,
-            result.content == "foo\nbar\nbaz<!-- endexcerpt -->\ncontent".to_string(),
+        assert!(
+            result.content == *"foo\nbar\nbaz<!-- endexcerpt -->\ncontent",
             "should use a custom separator"
         );
         assert_eq!(
@@ -285,9 +280,8 @@ mod tests {
         );
         let result = matter.parse("foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
         assert!(result.data.is_none(), "should get no front matter");
-        assert_eq!(
-            true,
-            result.content == "foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent".to_string(),
+        assert!(
+            result.content == *"foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
             "should get content as \"foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent\"",
         );
         assert_eq!(
@@ -308,8 +302,8 @@ mod tests {
         );
         assert!(
             !result.content.is_empty(),
-            "Looks similar to front matter:\n{}\nIs really just content.",
-            raw
+            "{}",
+            "Looks similar to front matter:\n{raw}\nIs really just content."
         );
         let result = matter.parse("--- true\n---");
         assert!(
@@ -335,18 +329,16 @@ mod tests {
             abc: "xyz".to_string(),
             version: 2,
         };
-        assert_eq!(
-            true,
+        assert!(
             data_expected == result.data,
-            "should get front matter as {:?}",
-            data_expected
+            "{}",
+            "should get front matter as {data_expected:?} "
         );
         let content_expected =
             "<span class=\"alert alert-info\">This is an alert</span>".to_string();
         assert_eq!(
             result.content, content_expected,
-            "should get content as {:?}",
-            content_expected
+            "should get content as {content_expected:?}"
         );
         #[derive(serde::Deserialize, PartialEq, Debug)]
         struct FrontMatterName {
@@ -364,18 +356,16 @@ here is some content
         let data_expected = FrontMatterName {
             name: "troublesome --- value".to_string(),
         };
-        assert_eq!(
-            true,
-            result.data == data_expected,
-            "should correctly identify delimiters and ignore strings that look like delimiters and get front matter as {:?}", data_expected
+        assert!(
+            result.data == data_expected, "{}",
+            "should correctly identify delimiters and ignore strings that look like delimiters and get front matter as {data_expected:?}"
         );
         let result: ParsedEntityStruct<FrontMatterName> = matter
             .parse_with_struct("---\nname: \"troublesome --- value\"\n---")
             .unwrap();
-        assert_eq!(
-            true,
-            result.data == data_expected,
-            "should correctly parse a string that only has an opening delimiter and get front matter as {:?}", data_expected
+        assert!(
+            result.data == data_expected, "{}",
+            "should correctly parse a string that only has an opening delimiter and get front matter as {data_expected:?}"
         );
         let result = matter.parse("-----------name--------------value\nfoo");
         assert!(
@@ -395,6 +385,7 @@ here is some content
     }
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_int_vs_float() {
         #[derive(serde::Deserialize, PartialEq)]
         struct FrontMatter {
@@ -408,8 +399,8 @@ float = 3.14159265
         let matter: Matter<TOML> = Matter::new();
         let result = matter.parse_with_struct::<FrontMatter>(raw).unwrap();
 
-        assert_eq!(result.data.int, 42 as i64);
-        assert_eq!(result.data.float, 3.14159265 as f64);
+        assert_eq!(result.data.int, 42_i64);
+        assert_eq!(result.data.float, 3.14159265_f64);
     }
 
     #[test]
