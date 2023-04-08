@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.6
+
+### Bug fixes
+
+- Incorrect behavior of `pod.is_empty()`. @yuchanns
+
+### Miscellaneous
+
+- Add contributor graph.
+- Fix Clippy issues.
+
 ## 0.2.5
 
 ### Enhancements
