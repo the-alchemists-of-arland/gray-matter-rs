@@ -105,7 +105,7 @@ impl Pod {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.len() > 0
+        self.len() == 0
     }
 
     pub fn as_string(&self) -> Result<String, Error> {
@@ -404,20 +404,20 @@ fn test_partial_compare_integer() -> std::result::Result<(), Error> {
 fn test_partial_compare_float() -> std::result::Result<(), Error> {
     let a = Pod::Float(16.01);
     let b = Pod::Float(16.01);
-    assert_eq!(true, a == b);
+    assert!(a == b);
     Ok(())
 }
 
 #[test]
-fn test_len_of_pod() -> std::result::Result<(), Error> {
+fn test_len_and_is_empty_of_pod() -> std::result::Result<(), Error> {
     let mut a = Pod::new_array();
     a[0] = Pod::String("hello".into());
-    assert_eq!(true, a.len() == 1);
+    assert!(a.len() == 1);
     let mut b = Pod::new_hash();
     b["hello"] = Pod::String("world".into());
     b["boolean"] = Pod::Boolean(true);
-    assert_eq!(true, b.len() == 2);
-    assert_eq!(true, Pod::String("hello".into()).len() == 0);
+    assert!(b.len() == 2);
+    assert!(Pod::String("hello".into()).is_empty());
     Ok(())
 }
 
