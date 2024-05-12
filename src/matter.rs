@@ -12,7 +12,7 @@ enum Part {
 /// Coupled with an [`Engine`](crate::engine::Engine) of choice, `Matter` stores delimiter(s) and
 /// handles parsing.
 pub struct Matter<T: Engine> {
-    pub delimiter: String,
+    pub delimiter: [String; 2],
     pub excerpt_delimiter: Option<String>,
     engine: PhantomData<T>,
 }
@@ -26,7 +26,7 @@ impl<T: Engine> Default for Matter<T> {
 impl<T: Engine> Matter<T> {
     pub fn new() -> Self {
         Self {
-            delimiter: "---".to_string(),
+            delimiter: ["---".to_string(), "---".to_string()],
             excerpt_delimiter: None,
             engine: PhantomData,
         }
@@ -58,8 +58,10 @@ impl<T: Engine> Matter<T> {
             matter: String::new(),
         };
 
+        let [open_delimiter, close_delimiter] = &self.delimiter;
+
         // Check if input is empty or shorter than the delimiter
-        if input.is_empty() || input.len() <= self.delimiter.len() {
+        if input.is_empty() || input.len() <= open_delimiter.len() {
             return parsed_entity;
         }
 
@@ -67,12 +69,11 @@ impl<T: Engine> Matter<T> {
         let excerpt_delimiter = self
             .excerpt_delimiter
             .clone()
-            .unwrap_or_else(|| self.delimiter.clone());
-
+            .unwrap_or_else(|| close_delimiter.clone());
         // If first line starts with a delimiter followed by newline, we are looking at front
         // matter. Else, we might be looking at an excerpt.
         let (mut looking_at, lines) = match input.split_once('\n') {
-            Some((first_line, rest)) if first_line.trim_end() == self.delimiter => {
+            Some((first_line, rest)) if first_line.trim_end() == open_delimiter => {
                 (Part::Matter, rest.lines())
             }
             _ => (Part::MaybeExcerpt, input.lines()),
@@ -83,7 +84,7 @@ impl<T: Engine> Matter<T> {
             let line = line.trim_end();
             match looking_at {
                 Part::Matter => {
-                    if line == self.delimiter {
+                    if line == open_delimiter || line == close_delimiter {
                         let matter = acc.trim().to_string();
 
                         if !matter.is_empty() {
@@ -189,11 +190,42 @@ mod tests {
             "{}",
             "should get front matter as {front_matter:?}",
         );
-        matter.delimiter = "~~~".to_string();
+        matter.delimiter = ["~~~".to_string(), "~~~".to_string()];
         let result = matter.parse("---\nabc: xyz\n---");
         assert!(result.data.is_none(), "should get no front matter");
         let result: ParsedEntityStruct<FrontMatter> =
             matter.parse_with_struct("~~~\nabc: xyz\n~~~").unwrap();
+        assert_eq!(
+            result.data, front_matter,
+            "{}",
+            "should get front matter by custom delimiter"
+        );
+        let result = matter.parse("\nabc: xyz\n~~~");
+        assert!(result.data.is_none(), "should get no front matter");
+    }
+
+    #[test]
+    fn test_front_matter_with_different_delimiters() {
+        #[derive(serde::Deserialize, PartialEq, Debug)]
+        struct FrontMatter {
+            abc: String,
+        }
+        let front_matter = FrontMatter {
+            abc: "xyz".to_string(),
+        };
+        let mut matter: Matter<YAML> = Matter::new();
+        let result: ParsedEntityStruct<FrontMatter> =
+            matter.parse_with_struct("---\nabc: xyz\n---").unwrap();
+        assert!(
+            result.data == front_matter,
+            "{}",
+            "should get front matter as {front_matter:?}"
+        );
+        matter.delimiter = ["<!--".to_string(), "-->".to_string()];
+        let result = matter.parse("---\nabc: xyz\n---");
+        assert!(result.data.is_none(), "should get no front matter");
+        let result: ParsedEntityStruct<FrontMatter> =
+            matter.parse_with_struct("<!--\nabc: xyz\n-->").unwrap();
         assert_eq!(
             result.data, front_matter,
             "{}",

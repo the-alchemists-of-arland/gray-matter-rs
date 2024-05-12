@@ -84,7 +84,7 @@ use serde::Deserialize;
 
 fn main() {
     let mut matter: Matter<YAML> = Matter::new();
-    matter.delimiter = "~~~".to_owned();
+    matter.delimiter = ["~~~".to_owned(), "~~~".to_owned()];
     matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_owned());
 
     #[derive(Deserialize, Debug)]
