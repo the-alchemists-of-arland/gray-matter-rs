@@ -84,7 +84,7 @@ use serde::Deserialize;
 
 fn main() {
     let mut matter: Matter<YAML> = Matter::new();
-    matter.delimiter = ["~~~".to_owned(), "~~~".to_owned()];
+    matter.delimiter = "~~~".to_owned();
     matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_owned());
 
     #[derive(Deserialize, Debug)]
@@ -94,6 +94,32 @@ fn main() {
 
     let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(
         "~~~\nabc: xyz\n~~~\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
+    ).unwrap();
+}
+```
+
+#### Custom close delimiter
+
+The open and close delimiter are the same by default (`---`). You can change this by modifiying `close_delimiter` property of `Matter` struct
+
+```rust
+use gray_matter::{Matter, ParsedEntityStruct};
+use gray_matter::engine::YAML;
+use serde::Deserialize;
+
+fn main() {
+    let mut matter: Matter<YAML> = Matter::new();
+    matter.delimiter = "<!--".to_owned();
+    matter.close_delimiter = Some("-->".to_owned());
+    matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_owned());
+
+    #[derive(Deserialize, Debug)]
+    struct FrontMatter {
+        abc: String,
+    }
+
+    let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(
+        "<!--\nabc: xyz\n-->\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
     ).unwrap();
 }
 ```
