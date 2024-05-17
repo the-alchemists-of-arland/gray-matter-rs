@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7
+
+### Enhancements
+
+- Support custom delimiters for both open and close. @Jawell
+
 ## 0.2.6
 
 ### Bug fixes

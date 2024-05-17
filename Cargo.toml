@@ -1,6 +1,6 @@
 [package]
 name = "gray_matter"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["yuchanns <airamusume@gmail.com>", "Knut Magnus Aasrud <km@aasrud.com>"]
 edition = "2018"
 license = "MIT"
