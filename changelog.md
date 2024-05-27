@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8
+
+### Miscellaneous
+
+- Replace unmaintained yaml-rust with yaml-rust2. @NathanReus
+
 ## 0.2.7
 
 ### Enhancements
