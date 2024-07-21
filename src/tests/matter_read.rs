@@ -67,13 +67,19 @@ fn test_parse_complex_yaml_front_matter() {
     struct FrontMatter {
         root: String,
         assets: String,
-        google: bool,
+        analytics: Analytics,
+    }
+    #[derive(serde::Deserialize, PartialEq, Debug)]
+    struct Analytics {
+        alexa: String,
     }
     let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("complex.md").unwrap();
     let data_expected = FrontMatter {
         root: "_gh_pages".to_string(),
         assets: "<%= site.dest %>/assets".to_string(),
-        google: false,
+        analytics: Analytics {
+            alexa: "lpTeh1awA400OE".to_string(),
+        },
     };
     assert_eq!(
         result.data, data_expected,

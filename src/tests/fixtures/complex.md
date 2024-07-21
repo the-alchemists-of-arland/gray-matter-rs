@@ -31,9 +31,9 @@ components:       <%= site.styles %>/components
 
 helpers:          <%= site.templates %>/helpers
 plugins:
-# - assemble-contrib-permalinks
-# - assemble-contrib-anchors
-# - assemble-contrib-toc
+  # - assemble-contrib-permalinks
+  # - assemble-contrib-anchors
+  # - assemble-contrib-toc
 
 
 # =============================================
@@ -53,21 +53,21 @@ description:      <%= pkg.description %>
 # URLs
 url:
 
-# Repo
-homepage:       <%= pkg.homepage %>
-repo:           <%= pkg.homepage %>
-issues:         <%= pkg.bugs.url %>?state=open
-ghpages:        https://<%= site.username %>.github.io/<%= pkg.name %>/
+  # Repo
+  homepage:       <%= pkg.homepage %>
+  repo:           <%= pkg.homepage %>
+  issues:         <%= pkg.bugs.url %>?state=open
+  ghpages:        https://<%= site.username %>.github.io/<%= pkg.name %>/
 
-# Site
-domain:         http://assemble.io/
-about:          <%= site.url.domain %>/about/
-blog:           <%= site.url.domain %>/blog/
+  # Site
+  domain:         http://assemble.io/
+  about:          <%= site.url.domain %>/about/
+  blog:           <%= site.url.domain %>/blog/
 
 # Download Links
 download:
-source:         <%= pkg.homepage %>/archive/master.zip
-latest:         <%= pkg.homepage %>/master/dist/<%= pkg.name %>-<%= pkg.version %>.min.js
+  source:         <%= pkg.homepage %>/archive/master.zip
+  latest:         <%= pkg.homepage %>/master/dist/<%= pkg.name %>-<%= pkg.version %>.min.js
 
 
 # =============================================
@@ -75,12 +75,12 @@ latest:         <%= pkg.homepage %>/master/dist/<%= pkg.name %>-<%= pkg.version 
 # =============================================
 
 analytics:
-alexa:           lpTeh1awA400OE
-google:
-id:             UA-XXXXXXXX-YY
-domain:         assemble.github.io
-siteid:         false
-tags:           FOO-012345 # Google Tags (see: https://www.google.com/tagmanager/)
+  alexa:           lpTeh1awA400OE
+  google:
+    id:             UA-XXXXXXXX-YY
+    domain:         assemble.github.io
+    siteid:         false
+    tags:           FOO-012345 # Google Tags (see: https://www.google.com/tagmanager/)
 
 
 # =============================================
@@ -89,28 +89,28 @@ tags:           FOO-012345 # Google Tags (see: https://www.google.com/tagmanager
 
 # Comments
 disqus:
-enabled:        false
-shortname:      <%= pkg.name %>
+  enabled:        false
+  shortname:      <%= pkg.name %>
 
 # Social
 social:
-twitter:
-via:          jonschlinkert
-username:     jonschlinkert
-related:      jonschlinkert:Assemble core team.
-facebook:       false
-linkedin:       false
-gplus:          false
-hn:             false
-google:         false
+  twitter:
+    via:          jonschlinkert
+    username:     jonschlinkert
+    related:      jonschlinkert:Assemble core team.
+  facebook:       false
+  linkedin:       false
+  gplus:          false
+  hn:             false
+  google:         false
 
 # Sharing
 sharing:
-twitter:        false
-facebook:       false
-gplus:          false
-hn:             false
-google:         false
+  twitter:        false
+  facebook:       false
+  gplus:          false
+  hn:             false
+  google:         false
 ---
 
 <span class="alert alert-info">This is an alert</span>
