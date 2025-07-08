@@ -1,8 +1,16 @@
 name: publish
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish'
+        required: true
 jobs:
   test:
     runs-on: ${{matrix.os}}
@@ -22,26 +30,51 @@ jobs:
   publish:
     runs-on: ubuntu-20.04
     needs: [test]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag != ''
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Check Version Match
+        run: |
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          INPUT_VERSION="${{ github.event.inputs.tag }}"
+          echo "Cargo.toml version: $CARGO_VERSION"
+          echo "Input version: $INPUT_VERSION"
+          if [ "$CARGO_VERSION" != "$INPUT_VERSION" ]; then
+            echo "Error: Version mismatch!"
+            echo "Cargo.toml version ($CARGO_VERSION) does not match input version ($INPUT_VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: $CARGO_VERSION"
+      - name: Draft Release
+        id: draft_release
+        uses: actions/github-script@v7
         with:
-          toolchain: stable
-          profile: minimal
-      - uses: olegtarasov/get-tag@v2.1
-        id: tagName
-        name: Get Tag Name
-        with:
-          tagRegex: "v(?<version>.*)"
-      - name: Set Package Version
-        env:
-          GIT_TAG_NAME: ${{ steps.tagName.outputs.version }}
-        run: sed -i "s/version = \"0.1.0\"/version = \"${GIT_TAG_NAME}\"/" Cargo.toml
+          script: |
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ github.event.inputs.tag }}',
+              name: 'Release ${{ github.event.inputs.tag }}',
+              draft: true,
+              generate_release_notes: true
+            });
+            return data.id
       - name: Cargo Login
         env:
           CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
         run: cargo login $CARGO_TOKEN
       - name: Cargo Publish Dry Run
         run: cargo publish --dry-run
+      - name: Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ steps.draft_release.outputs.result }},
+              draft: false
+            });
       - name: Cargo Publish
         run: cargo publish
