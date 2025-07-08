@@ -21,10 +21,9 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{matrix.rust}}
-          profile: minimal
       - name: Run Tests
         run: cargo test
   publish:
