@@ -86,10 +86,10 @@ impl<T: Engine> Matter<T> {
 
         let mut acc = String::new();
         for line in lines {
-            let line = line.trim_end();
+            let trimmed_line = line.trim_end();
             match looking_at {
                 Part::Matter => {
-                    if line == self.delimiter || line == close_delimiter {
+                    if trimmed_line == self.delimiter || trimmed_line == close_delimiter {
                         let matter = acc.trim().to_string();
 
                         if !matter.is_empty() {
@@ -104,12 +104,12 @@ impl<T: Engine> Matter<T> {
                 }
 
                 Part::MaybeExcerpt => {
-                    if line.ends_with(&excerpt_delimiter) {
+                    if trimmed_line.ends_with(&excerpt_delimiter) {
                         parsed_entity.excerpt = Some(
                             format!(
                                 "{}\n{}",
                                 acc.trim_start_matches('\n'),
-                                line.strip_suffix(&excerpt_delimiter).unwrap(),
+                                trimmed_line.strip_suffix(&excerpt_delimiter).unwrap(),
                             )
                             .trim_end()
                             .to_string(),
@@ -471,5 +471,16 @@ field2 = [3.14, 42]
         );
 
         assert_eq!(result.excerpt.unwrap(), "    An excerpt".to_string());
+    }
+
+    #[test]
+    fn test_gray_matter_strips_trailing_spaces() {
+        let content = "+++\ntitle = \"Test\"\n+++\n\nLine with trailing spaces.  \nNext line.";
+
+        let mut matter_toml = Matter::<TOML>::new();
+        matter_toml.delimiter = "+++".to_string();
+        let result = matter_toml.parse(content);
+
+        assert_eq!(result.content, "Line with trailing spaces.  \nNext line.")
     }
 }
