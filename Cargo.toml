@@ -1,7 +1,7 @@
 [package]
 name = "gray_matter"
-version = "0.2.8"
-authors = ["yuchanns <airamusume@gmail.com>", "Knut Magnus Aasrud <km@aasrud.com>"]
+version = "0.2.9"
+authors = ["Hanchin Hsieh <me@yuchanns.xyz>", "Knut Magnus Aasrud <km@aasrud.com>"]
 edition = "2018"
 license = "MIT"
 description = "Smart front matter parser. An implementation of gray-matter in rust. Parses YAML, JSON, TOML and support for custom parsers."
