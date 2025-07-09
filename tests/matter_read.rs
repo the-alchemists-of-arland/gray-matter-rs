@@ -1,6 +1,6 @@
-use crate::engine::yaml::YAML;
-use crate::entity::ParsedEntity;
-use crate::matter::Matter;
+use gray_matter::engine::yaml::YAML;
+use gray_matter::entity::ParsedEntity;
+use gray_matter::matter::Matter;
 use std::fs;
 use std::path::Path;
 
@@ -11,7 +11,7 @@ fn get_fixtures(file_name: &str) -> impl AsRef<Path> {
         .to_str()
         .unwrap()
         .to_string();
-    root_dir.push_str("/src/tests/fixtures/");
+    root_dir.push_str("/tests/fixtures/");
     root_dir.push_str(file_name);
     root_dir
 }

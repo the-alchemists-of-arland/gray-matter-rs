@@ -121,6 +121,3 @@ pub use matter::Matter;
 pub mod value;
 #[doc(inline)]
 pub use value::{error::Error, pod::Pod};
-
-#[cfg(test)]
-mod tests;
