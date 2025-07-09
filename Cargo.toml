@@ -14,13 +14,13 @@ exclude = [
 ]
 
 [dependencies]
-serde = { version = "1.0.137", features = ["derive"] }
-json = { package = "serde_json", version = "1.0.81" }
-toml = { version = "0.5.9", optional = true }
-yaml = { package = "yaml-rust2", version = "0.8.0", optional = true }
+serde = { version = "1", features = ["derive"] }
+json = { package = "serde_json", version = "1", optional = true }
+toml = { version = "0.9", optional = true }
+yaml = { package = "yaml-rust2", version = "0.10", optional = true }
 
 [features]
-default = ["toml", "yaml"]
+default = ["yaml", "toml", "json"]
 
 [dev-dependencies]
 cargo-husky = { version = "1", features = ["precommit-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"] }

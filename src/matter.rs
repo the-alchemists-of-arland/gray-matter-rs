@@ -134,7 +134,9 @@ impl<T: Engine> Matter<T> {
 #[cfg(test)]
 mod tests {
     use super::Matter;
-    use crate::engine::{TOML, YAML};
+    #[cfg(feature = "toml")]
+    use crate::engine::TOML;
+    use crate::engine::YAML;
     use crate::ParsedEntity;
 
     #[test]
@@ -373,6 +375,7 @@ here is some content
         );
     }
 
+    #[cfg(feature = "toml")]
     #[test]
     #[allow(clippy::approx_constant)]
     fn test_int_vs_float() {
@@ -393,6 +396,7 @@ float = 3.14159265
         assert_eq!(data.float, 3.14159265_f64);
     }
 
+    #[cfg(feature = "toml")]
     #[test]
     fn test_whitespace_content() {
         let raw = r#"---
@@ -425,6 +429,7 @@ field2 = [3.14, 42]
         assert_eq!(result.excerpt.unwrap(), "    An excerpt".to_string());
     }
 
+    #[cfg(feature = "toml")]
     #[test]
     fn test_gray_matter_strips_trailing_spaces() {
         let content = "+++\ntitle = \"Test\"\n+++\n\nLine with trailing spaces.  \nNext line.";

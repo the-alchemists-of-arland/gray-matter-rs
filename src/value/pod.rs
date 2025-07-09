@@ -1025,6 +1025,7 @@ impl IndexMut<String> for Pod {
     }
 }
 
+#[cfg(feature = "json")]
 impl Into<json::Value> for Pod {
     fn into(self) -> json::Value {
         use json::json;

@@ -39,6 +39,7 @@ impl error::Error for Error {
     }
 }
 
+#[cfg(feature = "json")]
 impl From<json::Error> for Error {
     fn from(err: json::Error) -> Self {
         Error::deserialize_error(err.to_string())
