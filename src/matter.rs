@@ -1,5 +1,5 @@
 use crate::engine::Engine;
-use crate::{ParsedEntity, ParsedEntityStruct};
+use crate::ParsedEntity;
 use std::fmt::Write;
 use std::marker::PhantomData;
 
@@ -42,15 +42,15 @@ impl<T: Engine> Matter<T> {
     /// Basic usage:
     ///
     /// ```rust
-    /// # use gray_matter::Matter;
+    /// # use gray_matter::{Matter, ParsedEntity};
     /// # use gray_matter::engine::YAML;
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
-    /// let parsed_entity = matter.parse(input);
+    /// let parsed_entity: ParsedEntity = matter.parse(input);
     ///
     /// assert_eq!(parsed_entity.content, "Other stuff");
     /// ```
-    pub fn parse(&self, input: &str) -> ParsedEntity {
+    pub fn parse<D: serde::de::DeserializeOwned>(&self, input: &str) -> ParsedEntity<D> {
         // Initialize ParsedEntity
         let mut parsed_entity = ParsedEntity {
             data: None,
@@ -93,7 +93,7 @@ impl<T: Engine> Matter<T> {
                         let matter = acc.trim().to_string();
 
                         if !matter.is_empty() {
-                            parsed_entity.data = Some(T::parse(&matter));
+                            parsed_entity.data = T::parse(&matter).deserialize().ok();
                             parsed_entity.matter = matter;
                         }
 
@@ -129,54 +129,13 @@ impl<T: Engine> Matter<T> {
 
         parsed_entity
     }
-
-    /// Wrapper around [`parse`](Matter::parse), that deserializes any front matter into a custom
-    /// struct. Supplied as an ease-of-use function to prevent having to deserialize manually.
-    ///
-    /// Returns `None` if no front matter is found, or if the front matter is not deserializable
-    /// into the custom struct.
-    ///
-    /// ## Examples
-    ///
-    /// Basic usage:
-    ///
-    /// ```rust
-    /// # use gray_matter::Matter;
-    /// # use gray_matter::engine::YAML;
-    /// # use gray_matter::ParsedEntityStruct;
-    /// #[derive(serde::Deserialize)]
-    /// struct Config {
-    ///     title: String,
-    /// }
-    ///
-    /// let matter: Matter<YAML> = Matter::new();
-    /// let input = "---\ntitle: Home\n---\nOther stuff";
-    /// let parsed_entity =  matter.parse_with_struct::<Config>(input).unwrap();
-    ///
-    /// assert_eq!(parsed_entity.data.title, "Home");
-    /// ```
-    pub fn parse_with_struct<D: serde::de::DeserializeOwned>(
-        &self,
-        input: &str,
-    ) -> Option<ParsedEntityStruct<D>> {
-        let parsed_entity = self.parse(input);
-        let data: D = parsed_entity.data?.deserialize().ok()?;
-
-        Some(ParsedEntityStruct {
-            data,
-            content: parsed_entity.content,
-            excerpt: parsed_entity.excerpt,
-            orig: parsed_entity.orig,
-            matter: parsed_entity.matter,
-        })
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Matter;
     use crate::engine::{TOML, YAML};
-    use crate::ParsedEntityStruct;
+    use crate::ParsedEntity;
 
     #[test]
     fn test_front_matter() {
@@ -188,24 +147,23 @@ mod tests {
             abc: "xyz".to_string(),
         };
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntityStruct<FrontMatter> =
-            matter.parse_with_struct("---\nabc: xyz\n---").unwrap();
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---");
         assert!(
-            result.data == front_matter,
+            result.data.is_some_and(|data| data == front_matter),
             "{}",
             "should get front matter as {front_matter:?}",
         );
         matter.delimiter = "~~~".to_string();
-        let result = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---");
         assert!(result.data.is_none(), "should get no front matter");
-        let result: ParsedEntityStruct<FrontMatter> =
-            matter.parse_with_struct("~~~\nabc: xyz\n~~~").unwrap();
+        let result: ParsedEntity<FrontMatter> = matter.parse("~~~\nabc: xyz\n~~~");
         assert_eq!(
-            result.data, front_matter,
+            result.data,
+            Some(front_matter),
             "{}",
             "should get front matter by custom delimiter"
         );
-        let result = matter.parse("\nabc: xyz\n~~~");
+        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~");
         assert!(result.data.is_none(), "should get no front matter");
     }
 
@@ -219,25 +177,24 @@ mod tests {
             abc: "xyz".to_string(),
         };
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntityStruct<FrontMatter> =
-            matter.parse_with_struct("---\nabc: xyz\n---").unwrap();
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---");
         assert!(
-            result.data == front_matter,
+            result.data.is_some_and(|data| data == front_matter),
             "{}",
             "should get front matter as {front_matter:?}"
         );
         matter.delimiter = "<!--".to_string();
         matter.close_delimiter = Some("-->".to_string());
-        let result = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---");
         assert!(result.data.is_none(), "should get no front matter");
-        let result: ParsedEntityStruct<FrontMatter> =
-            matter.parse_with_struct("<!--\nabc: xyz\n-->").unwrap();
+        let result: ParsedEntity<FrontMatter> = matter.parse("<!--\nabc: xyz\n-->");
         assert_eq!(
-            result.data, front_matter,
+            result.data,
+            Some(front_matter),
             "{}",
             "should get front matter by custom delimiter"
         );
-        let result = matter.parse("\nabc: xyz\n~~~");
+        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~");
         assert!(result.data.is_none(), "should get no front matter");
     }
 
@@ -250,7 +207,7 @@ mod tests {
             "---\n\n\n\n\n\n---\nThis is content",
         ];
         for input in table.into_iter() {
-            let result = matter.parse(input);
+            let result: ParsedEntity = matter.parse(input);
             assert!(result.data.is_none(), "should get no front matter");
             assert_eq!(result.content, "This is content");
         }
@@ -263,11 +220,10 @@ mod tests {
             abc: String,
         }
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntityStruct<FrontMatter> = matter
-            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent")
-            .unwrap();
+        let result: ParsedEntity<FrontMatter> =
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent");
         assert_eq!(
-            result.data.abc,
+            result.data.unwrap().abc,
             "xyz".to_string(),
             "should get front matter xyz as value of abc"
         );
@@ -282,11 +238,10 @@ mod tests {
             "should get an excerpt after front matter"
         );
         matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_string());
-        let result: ParsedEntityStruct<FrontMatter> = matter
-            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent")
-            .unwrap();
+        let result: ParsedEntity<FrontMatter> =
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
         assert!(
-            result.data.abc == *"xyz",
+            result.data.unwrap().abc == *"xyz",
             "should get front matter xyz as value of abc"
         );
         assert!(
@@ -300,11 +255,10 @@ mod tests {
         );
 
         // Check that the endexcerpt delimiter can be on the same line
-        let result: ParsedEntityStruct<FrontMatter> = matter
-            .parse_with_struct("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent")
-            .unwrap();
+        let result: ParsedEntity<FrontMatter> =
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent");
         assert!(
-            result.data.abc == *"xyz",
+            result.data.unwrap().abc == *"xyz",
             "should get front matter xyz as value of abc"
         );
         assert!(
@@ -316,7 +270,7 @@ mod tests {
             "foo\nbar\nbaz",
             "should get excerpt as \"foo\nbar\nbaz\""
         );
-        let result = matter.parse("foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
+        let result: ParsedEntity = matter.parse("foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
         assert!(result.data.is_none(), "should get no front matter");
         assert!(
             result.content == *"foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
@@ -333,7 +287,7 @@ mod tests {
     fn test_parser() {
         let matter: Matter<YAML> = Matter::new();
         let raw = "---whatever\nabc: xyz\n---".to_string();
-        let result = matter.parse(&raw);
+        let result: ParsedEntity = matter.parse(&raw);
         assert!(
             result.data.is_none(),
             "extra characters should get no front matter"
@@ -343,18 +297,18 @@ mod tests {
             "{}",
             "Looks similar to front matter:\n{raw}\nIs really just content."
         );
-        let result = matter.parse("--- true\n---");
+        let result: ParsedEntity = matter.parse("--- true\n---");
         assert!(
             result.data.is_none(),
             "boolean yaml types should get no front matter"
         );
-        let result = matter.parse("--- 233\n---");
+        let result: ParsedEntity = matter.parse("--- 233\n---");
         assert!(
             result.data.is_none(),
             "number yaml types should get no front matter"
         );
         assert!(
-            matter.parse("").data.is_none(),
+            matter.parse::<()>("").data.is_none(),
             "Empty string should give `data` = None."
         );
         #[derive(serde::Deserialize, PartialEq, Debug)]
@@ -362,13 +316,13 @@ mod tests {
             abc: String,
             version: i64,
         }
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct("---\nabc: xyz\nversion: 2\n---\n\n<span class=\"alert alert-info\">This is an alert</span>\n").unwrap();
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\nversion: 2\n---\n\n<span class=\"alert alert-info\">This is an alert</span>\n");
         let data_expected = FrontMatter {
             abc: "xyz".to_string(),
             version: 2,
         };
         assert!(
-            data_expected == result.data,
+            Some(data_expected) == result.data,
             "{}",
             "should get front matter as {data_expected:?} "
         );
@@ -382,40 +336,37 @@ mod tests {
         struct FrontMatterName {
             name: String,
         }
-        let result: ParsedEntityStruct<FrontMatterName> = matter
-            .parse_with_struct(
-                r#"---
+        let result: ParsedEntity<FrontMatterName> = matter.parse(
+            r#"---
 name: "troublesome --- value"
 ---
 here is some content
 "#,
-            )
-            .unwrap();
+        );
         let data_expected = FrontMatterName {
             name: "troublesome --- value".to_string(),
         };
         assert!(
-            result.data == data_expected, "{}",
+            result.data.is_some_and(|data| data == data_expected), "{}",
             "should correctly identify delimiters and ignore strings that look like delimiters and get front matter as {data_expected:?}"
         );
-        let result: ParsedEntityStruct<FrontMatterName> = matter
-            .parse_with_struct("---\nname: \"troublesome --- value\"\n---")
-            .unwrap();
+        let result: ParsedEntity<FrontMatterName> =
+            matter.parse("---\nname: \"troublesome --- value\"\n---");
         assert!(
-            result.data == data_expected, "{}",
+            result.data == Some(data_expected), "{}",
             "should correctly parse a string that only has an opening delimiter and get front matter as {data_expected:?}"
         );
-        let result = matter.parse("-----------name--------------value\nfoo");
+        let result: ParsedEntity = matter.parse("-----------name--------------value\nfoo");
         assert!(
             result.data.is_none(),
             "should not try to parse a string has content that looks like front-matter"
         );
-        let result = matter.parse("---\nname: ---\n---\n---\n");
+        let result: ParsedEntity = matter.parse("---\nname: ---\n---\n---\n");
         assert_eq!(
             result.content, "---",
             "should correctly handle rogue delimiter"
         );
-        let result = matter.parse("---\nname: bar\n---\n---\n---");
+        let result: ParsedEntity = matter.parse("---\nname: bar\n---\n---\n---");
         assert_eq!(
             result.content, "---\n---",
             "should correctly handle two rogue delimiter"
@@ -435,10 +386,11 @@ int = 42
 float = 3.14159265
 ---"#;
         let matter: Matter<TOML> = Matter::new();
-        let result = matter.parse_with_struct::<FrontMatter>(raw).unwrap();
+        let result = matter.parse::<FrontMatter>(raw);
 
-        assert_eq!(result.data.int, 42_i64);
-        assert_eq!(result.data.float, 3.14159265_f64);
+        let data = result.data.expect("should have parsed front matter");
+        assert_eq!(data.int, 42_i64);
+        assert_eq!(data.float, 3.14159265_f64);
     }
 
     #[test]
@@ -452,7 +404,7 @@ field2 = [3.14, 42]
 
 # This is header"#;
         let matter: Matter<TOML> = Matter::new();
-        let result = matter.parse(raw);
+        let result: ParsedEntity = matter.parse(raw);
 
         assert_eq!(result.content, "    this is code block\n\n# This is header")
     }
@@ -463,7 +415,7 @@ field2 = [3.14, 42]
         let raw = r#"    An excerpt
 ---
     This is my content"#;
-        let result = matter.parse(raw);
+        let result: ParsedEntity = matter.parse(raw);
 
         assert_eq!(
             result.content,
@@ -479,7 +431,7 @@ field2 = [3.14, 42]
 
         let mut matter_toml = Matter::<TOML>::new();
         matter_toml.delimiter = "+++".to_string();
-        let result = matter_toml.parse(content);
+        let result: ParsedEntity = matter_toml.parse(content);
 
         assert_eq!(result.content, "Line with trailing spaces.  \nNext line.")
     }

@@ -64,7 +64,7 @@ impl From<&Yaml> for Pod {
 #[cfg(test)]
 mod test {
     use crate::engine::yaml::YAML;
-    use crate::entity::ParsedEntityStruct;
+    use crate::entity::ParsedEntity;
     use crate::matter::Matter;
     use serde::Deserialize;
 
@@ -87,8 +87,8 @@ three: baz
             two: "bar".to_string(),
             three: "baz".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
-        assert_eq!(result.data, data_expected);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input);
+        assert_eq!(result.data, Some(data_expected));
     }
 
     #[test]
@@ -115,7 +115,7 @@ null: boo
             three: "baz".to_string(),
             null: "boo".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
-        assert_eq!(result.data, data_expected);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input);
+        assert_eq!(result.data, Some(data_expected));
     }
 }

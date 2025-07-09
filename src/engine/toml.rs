@@ -46,7 +46,7 @@ impl From<&Value> for Pod {
 #[cfg(test)]
 mod test {
     use crate::engine::toml::TOML;
-    use crate::entity::ParsedEntityStruct;
+    use crate::entity::ParsedEntity;
     use crate::matter::Matter;
     use serde::Deserialize;
 
@@ -72,7 +72,7 @@ categories = "front matter toml"
             description: "Front matter".to_string(),
             categories: "front matter toml".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
-        assert_eq!(result.data, data_expected);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input);
+        assert_eq!(result.data, Some(data_expected));
     }
 }

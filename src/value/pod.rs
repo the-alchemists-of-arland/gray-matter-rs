@@ -24,6 +24,17 @@ pub enum Pod {
 
 static NULL: Pod = Pod::Null;
 
+impl<'de> serde::de::Deserialize<'de> for Pod {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use json::Value;
+        let value = Value::deserialize(deserializer)?;
+        Ok(Pod::from(value))
+    }
+}
+
 impl Pod {
     /// Deserialize a `Pod` into any struct that implements
     /// [`Deserialize`](https://docs.rs/serde/1.0.127/serde/trait.Deserialize.html).

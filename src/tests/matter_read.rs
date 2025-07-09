@@ -1,7 +1,6 @@
 use crate::engine::yaml::YAML;
-use crate::entity::{ParsedEntity, ParsedEntityStruct};
+use crate::entity::ParsedEntity;
 use crate::matter::Matter;
-use serde::de::DeserializeOwned;
 use std::fs;
 use std::path::Path;
 
@@ -22,16 +21,10 @@ fn read_content(file_name: &str) -> String {
     fs::read_to_string(path).expect("Cannot read")
 }
 
-fn matter_yaml(file_name: &str) -> ParsedEntity {
+fn matter_yaml<D: serde::de::DeserializeOwned>(file_name: &str) -> ParsedEntity<D> {
     let content = read_content(file_name);
     let matter: Matter<YAML> = Matter::new();
     matter.parse(&content)
-}
-
-fn matter_yaml_struct<D: DeserializeOwned>(file_name: &str) -> Option<ParsedEntityStruct<D>> {
-    let content = read_content(file_name);
-    let matter: Matter<YAML> = Matter::new();
-    matter.parse_with_struct(&content)
 }
 
 #[test]
@@ -40,12 +33,13 @@ fn test_basic() {
     struct FrontMatter {
         title: String,
     }
-    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("basic.txt").unwrap();
+    let result: ParsedEntity<FrontMatter> = matter_yaml("basic.txt");
     let data_expected = FrontMatter {
         title: "Basic".to_string(),
     };
-    assert_eq!(
-        result.data, data_expected,
+    assert!(
+        result.data.is_some_and(|data| data == data_expected),
+        "{}",
         "should get front matter as {data_expected:?}"
     );
     assert_eq!(
@@ -55,7 +49,7 @@ fn test_basic() {
 }
 #[test]
 fn test_parse_empty() {
-    let result = matter_yaml("empty.md");
+    let result: ParsedEntity = matter_yaml("empty.md");
     assert!(result.content.is_empty());
     assert!(result.data.is_none());
     assert!(result.excerpt.is_none())
@@ -73,7 +67,7 @@ fn test_parse_complex_yaml_front_matter() {
     struct Analytics {
         alexa: String,
     }
-    let result: ParsedEntityStruct<FrontMatter> = matter_yaml_struct("complex.md").unwrap();
+    let result: ParsedEntity<FrontMatter> = matter_yaml("complex.md");
     let data_expected = FrontMatter {
         root: "_gh_pages".to_string(),
         assets: "<%= site.dest %>/assets".to_string(),
@@ -81,8 +75,9 @@ fn test_parse_complex_yaml_front_matter() {
             alexa: "lpTeh1awA400OE".to_string(),
         },
     };
-    assert_eq!(
-        result.data, data_expected,
+    assert!(
+        result.data.is_some_and(|data| data == data_expected),
+        "{}",
         "should get front matter as {data_expected:?}"
     );
     assert!(!result.content.is_empty(), "should get content");
@@ -91,7 +86,7 @@ fn test_parse_complex_yaml_front_matter() {
 
 #[test]
 fn test_parse_no_matter() {
-    let result = matter_yaml("hasnt-matter.md");
+    let result: ParsedEntity = matter_yaml("hasnt-matter.md");
     assert!(
         result.data.is_none(),
         "Parsing `hasnt-matter.md` shold give `data` = None."
@@ -110,7 +105,7 @@ fn test_all_matter() {
         two: String,
         three: String,
     }
-    let result = matter_yaml("all.yaml");
+    let result: ParsedEntity = matter_yaml("all.yaml");
     assert!(
         result.data.is_none(),
         "Should not get any front matter from `all.yaml`.",

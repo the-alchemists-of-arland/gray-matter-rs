@@ -50,7 +50,7 @@
 //! ## Basic parsing
 //!
 //! ```rust
-//! use gray_matter::Matter;
+//! use gray_matter::{Matter, ParsedEntity};
 //! use gray_matter::engine::YAML;
 //! use serde::Deserialize;
 //!
@@ -69,7 +69,7 @@
 //!     // Select one parser engine, such as YAML, and parse it
 //!     // into gray_matter's custom data type: `Pod`
 //!     let matter = Matter::<YAML>::new();
-//!     let result = matter.parse(INPUT);
+//!     let result: ParsedEntity = matter.parse(INPUT);
 //!
 //!     // You can now inspect the data from gray_matter.
 //!     assert_eq!(result.content, "Some excerpt\n---\nOther stuff");
@@ -78,7 +78,7 @@
 //!     assert_eq!(result.data.as_ref().unwrap()["tags"][0].as_string(), Ok("gray-matter".to_string()));
 //!     assert_eq!(result.data.as_ref().unwrap()["tags"][1].as_string(), Ok("rust".to_string()));
 //!
-//!     // The `Pod` data type can be a bit unwieldy, so
+//!     // The default `Pod` data type can be a bit unwieldy, so
 //!     // you can also deserialize it into a custom struct
 //!     #[derive(Deserialize, Debug)]
 //!     struct FrontMatter {
@@ -86,13 +86,7 @@
 //!         tags: Vec<String>
 //!     }
 //!
-//!     // Deserialize `result` manually:
-//!     let front_matter: FrontMatter = result.data.unwrap().deserialize().unwrap();
-//!     println!("{:?}", front_matter);
-//!     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
-//!
-//!     // ...or skip a step, by using `parse_with_struct`.
-//!     let result_with_struct = matter.parse_with_struct::<FrontMatter>(INPUT).unwrap();
+//!     let result_with_struct = matter.parse::<FrontMatter>(INPUT);
 //!     println!("{:?}", result_with_struct.data)
 //!     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
 //! }
@@ -116,7 +110,7 @@ pub mod engine;
 #[doc(hidden)]
 pub mod entity;
 #[doc(inline)]
-pub use entity::{ParsedEntity, ParsedEntityStruct};
+pub use entity::ParsedEntity;
 
 #[doc(hidden)]
 pub mod matter;
