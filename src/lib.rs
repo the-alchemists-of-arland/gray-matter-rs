@@ -1,4 +1,5 @@
 #![allow(clippy::from_over_into)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! **gray_matter** is a tool for easily extracting front matter out of a string. It is a fast Rust
 //! implementation of the original [gray-matter](https://github.com/jonschlinkert/gray-matter) by
