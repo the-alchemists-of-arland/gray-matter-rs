@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::Pod;
+use crate::{Error, Result};
 use std::collections::HashMap;
 use yaml::{Yaml, YamlLoader};
 
@@ -7,16 +8,16 @@ use yaml::{Yaml, YamlLoader};
 pub struct YAML;
 
 impl Engine for YAML {
-    fn parse(content: &str) -> Pod {
+    fn parse(content: &str) -> Result<Pod> {
         match YamlLoader::load_from_str(content) {
             Ok(docs) => {
                 let mut doc = Pod::Null;
                 if !docs.is_empty() {
                     doc = docs[0].clone().into();
                 }
-                doc
+                Ok(doc)
             }
-            Err(..) => Pod::Null,
+            Err(e) => Err(Error::deserialize_error(&format!("{}", e))),
         }
     }
 }
@@ -63,13 +64,14 @@ impl From<&Yaml> for Pod {
 
 #[cfg(test)]
 mod test {
-    use crate::engine::yaml::YAML;
-    use crate::entity::ParsedEntity;
-    use crate::matter::Matter;
+    use crate::engine::YAML;
+    use crate::Matter;
+    use crate::ParsedEntity;
+    use crate::Result;
     use serde::Deserialize;
 
     #[test]
-    fn test_matter() {
+    fn test_matter() -> Result<()> {
         let matter: Matter<YAML> = Matter::new();
         let input = r#"---
 one: foo
@@ -87,12 +89,13 @@ three: baz
             two: "bar".to_string(),
             three: "baz".to_string(),
         };
-        let result: ParsedEntity<FrontMatter> = matter.parse(input);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input)?;
         assert_eq!(result.data, Some(data_expected));
+        Ok(())
     }
 
     #[test]
-    fn non_string_keys() {
+    fn non_string_keys() -> Result<()> {
         let matter: Matter<YAML> = Matter::new();
         let input = r#"---
 1: foo
@@ -115,7 +118,8 @@ null: boo
             three: "baz".to_string(),
             null: "boo".to_string(),
         };
-        let result: ParsedEntity<FrontMatter> = matter.parse(input);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input)?;
         assert_eq!(result.data, Some(data_expected));
+        Ok(())
     }
 }

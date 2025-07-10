@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::ParsedEntity;
+use crate::Result;
 use std::fmt::Write;
 use std::marker::PhantomData;
 
@@ -46,11 +47,11 @@ impl<T: Engine> Matter<T> {
     /// # use gray_matter::engine::YAML;
     /// let matter: Matter<YAML> = Matter::new();
     /// let input = "---\ntitle: Home\n---\nOther stuff";
-    /// let parsed_entity: ParsedEntity = matter.parse(input);
+    /// let parsed_entity: ParsedEntity = matter.parse(input).unwrap();
     ///
     /// assert_eq!(parsed_entity.content, "Other stuff");
     /// ```
-    pub fn parse<D: serde::de::DeserializeOwned>(&self, input: &str) -> ParsedEntity<D> {
+    pub fn parse<D: serde::de::DeserializeOwned>(&self, input: &str) -> Result<ParsedEntity<D>> {
         // Initialize ParsedEntity
         let mut parsed_entity = ParsedEntity {
             data: None,
@@ -62,7 +63,7 @@ impl<T: Engine> Matter<T> {
 
         // Check if input is empty or shorter than the delimiter
         if input.is_empty() || input.len() <= self.delimiter.len() {
-            return parsed_entity;
+            return Ok(parsed_entity);
         }
 
         // If excerpt delimiter is given, use it. Otherwise, use normal delimiter
@@ -93,7 +94,7 @@ impl<T: Engine> Matter<T> {
                         let matter = acc.trim().to_string();
 
                         if !matter.is_empty() {
-                            parsed_entity.data = T::parse(&matter).deserialize().ok();
+                            parsed_entity.data = T::parse(&matter)?.deserialize()?;
                             parsed_entity.matter = matter;
                         }
 
@@ -127,7 +128,7 @@ impl<T: Engine> Matter<T> {
 
         parsed_entity.content = acc.trim_start_matches('\n').to_string();
 
-        parsed_entity
+        Ok(parsed_entity)
     }
 }
 
@@ -138,9 +139,10 @@ mod tests {
     use crate::engine::TOML;
     use crate::engine::YAML;
     use crate::ParsedEntity;
+    use crate::Result;
 
     #[test]
-    fn test_front_matter() {
+    fn test_front_matter() -> Result<()> {
         #[derive(serde::Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             abc: String,
@@ -149,28 +151,29 @@ mod tests {
             abc: "xyz".to_string(),
         };
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---")?;
         assert!(
             result.data.is_some_and(|data| data == front_matter),
             "{}",
             "should get front matter as {front_matter:?}",
         );
         matter.delimiter = "~~~".to_string();
-        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---")?;
         assert!(result.data.is_none(), "should get no front matter");
-        let result: ParsedEntity<FrontMatter> = matter.parse("~~~\nabc: xyz\n~~~");
+        let result: ParsedEntity<FrontMatter> = matter.parse("~~~\nabc: xyz\n~~~")?;
         assert_eq!(
             result.data,
             Some(front_matter),
             "{}",
             "should get front matter by custom delimiter"
         );
-        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~");
+        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~")?;
         assert!(result.data.is_none(), "should get no front matter");
+        Ok(())
     }
 
     #[test]
-    fn test_front_matter_with_different_delimiters() {
+    fn test_front_matter_with_different_delimiters() -> Result<()> {
         #[derive(serde::Deserialize, PartialEq, Debug)]
         struct FrontMatter {
             abc: String,
@@ -179,7 +182,7 @@ mod tests {
             abc: "xyz".to_string(),
         };
         let mut matter: Matter<YAML> = Matter::new();
-        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\n---")?;
         assert!(
             result.data.is_some_and(|data| data == front_matter),
             "{}",
@@ -187,21 +190,22 @@ mod tests {
         );
         matter.delimiter = "<!--".to_string();
         matter.close_delimiter = Some("-->".to_string());
-        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---");
+        let result: ParsedEntity = matter.parse("---\nabc: xyz\n---")?;
         assert!(result.data.is_none(), "should get no front matter");
-        let result: ParsedEntity<FrontMatter> = matter.parse("<!--\nabc: xyz\n-->");
+        let result: ParsedEntity<FrontMatter> = matter.parse("<!--\nabc: xyz\n-->")?;
         assert_eq!(
             result.data,
             Some(front_matter),
             "{}",
             "should get front matter by custom delimiter"
         );
-        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~");
+        let result: ParsedEntity = matter.parse("\nabc: xyz\n~~~")?;
         assert!(result.data.is_none(), "should get no front matter");
+        Ok(())
     }
 
     #[test]
-    pub fn test_empty_matter() {
+    pub fn test_empty_matter() -> Result<()> {
         let matter: Matter<YAML> = Matter::new();
         let table = vec![
             "---\n---\nThis is content",
@@ -209,21 +213,22 @@ mod tests {
             "---\n\n\n\n\n\n---\nThis is content",
         ];
         for input in table.into_iter() {
-            let result: ParsedEntity = matter.parse(input);
+            let result: ParsedEntity = matter.parse(input)?;
             assert!(result.data.is_none(), "should get no front matter");
             assert_eq!(result.content, "This is content");
         }
+        Ok(())
     }
 
     #[test]
-    pub fn test_matter_excerpt() {
+    pub fn test_matter_excerpt() -> Result<()> {
         #[derive(serde::Deserialize, PartialEq)]
         struct FrontMatter {
             abc: String,
         }
         let mut matter: Matter<YAML> = Matter::new();
         let result: ParsedEntity<FrontMatter> =
-            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent");
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n---\ncontent")?;
         assert_eq!(
             result.data.unwrap().abc,
             "xyz".to_string(),
@@ -241,7 +246,7 @@ mod tests {
         );
         matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_string());
         let result: ParsedEntity<FrontMatter> =
-            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent")?;
         assert!(
             result.data.unwrap().abc == *"xyz",
             "should get front matter xyz as value of abc"
@@ -258,7 +263,7 @@ mod tests {
 
         // Check that the endexcerpt delimiter can be on the same line
         let result: ParsedEntity<FrontMatter> =
-            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent");
+            matter.parse("---\nabc: xyz\n---\nfoo\nbar\nbaz<!-- endexcerpt -->\ncontent")?;
         assert!(
             result.data.unwrap().abc == *"xyz",
             "should get front matter xyz as value of abc"
@@ -272,7 +277,7 @@ mod tests {
             "foo\nbar\nbaz",
             "should get excerpt as \"foo\nbar\nbaz\""
         );
-        let result: ParsedEntity = matter.parse("foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent");
+        let result: ParsedEntity = matter.parse("foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent")?;
         assert!(result.data.is_none(), "should get no front matter");
         assert!(
             result.content == *"foo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
@@ -283,13 +288,14 @@ mod tests {
             "foo\nbar\nbaz",
             "should use a custom separator when no front-matter exists"
         );
+        Ok(())
     }
 
     #[test]
-    fn test_parser() {
+    fn test_parser() -> Result<()> {
         let matter: Matter<YAML> = Matter::new();
         let raw = "---whatever\nabc: xyz\n---".to_string();
-        let result: ParsedEntity = matter.parse(&raw);
+        let result: ParsedEntity = matter.parse(&raw)?;
         assert!(
             result.data.is_none(),
             "extra characters should get no front matter"
@@ -299,18 +305,18 @@ mod tests {
             "{}",
             "Looks similar to front matter:\n{raw}\nIs really just content."
         );
-        let result: ParsedEntity = matter.parse("--- true\n---");
+        let result: ParsedEntity = matter.parse("--- true\n---")?;
         assert!(
             result.data.is_none(),
             "boolean yaml types should get no front matter"
         );
-        let result: ParsedEntity = matter.parse("--- 233\n---");
+        let result: ParsedEntity = matter.parse("--- 233\n---")?;
         assert!(
             result.data.is_none(),
             "number yaml types should get no front matter"
         );
         assert!(
-            matter.parse::<()>("").data.is_none(),
+            matter.parse::<()>("")?.data.is_none(),
             "Empty string should give `data` = None."
         );
         #[derive(serde::Deserialize, PartialEq, Debug)]
@@ -318,7 +324,7 @@ mod tests {
             abc: String,
             version: i64,
         }
-        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\nversion: 2\n---\n\n<span class=\"alert alert-info\">This is an alert</span>\n");
+        let result: ParsedEntity<FrontMatter> = matter.parse("---\nabc: xyz\nversion: 2\n---\n\n<span class=\"alert alert-info\">This is an alert</span>\n")?;
         let data_expected = FrontMatter {
             abc: "xyz".to_string(),
             version: 2,
@@ -344,7 +350,7 @@ name: "troublesome --- value"
 ---
 here is some content
 "#,
-        );
+        )?;
         let data_expected = FrontMatterName {
             name: "troublesome --- value".to_string(),
         };
@@ -353,32 +359,33 @@ here is some content
             "should correctly identify delimiters and ignore strings that look like delimiters and get front matter as {data_expected:?}"
         );
         let result: ParsedEntity<FrontMatterName> =
-            matter.parse("---\nname: \"troublesome --- value\"\n---");
+            matter.parse("---\nname: \"troublesome --- value\"\n---")?;
         assert!(
             result.data == Some(data_expected), "{}",
             "should correctly parse a string that only has an opening delimiter and get front matter as {data_expected:?}"
         );
-        let result: ParsedEntity = matter.parse("-----------name--------------value\nfoo");
+        let result: ParsedEntity = matter.parse("-----------name--------------value\nfoo")?;
         assert!(
             result.data.is_none(),
             "should not try to parse a string has content that looks like front-matter"
         );
-        let result: ParsedEntity = matter.parse("---\nname: ---\n---\n---\n");
+        let result: ParsedEntity = matter.parse("---\nname: ---\n---\n---\n")?;
         assert_eq!(
             result.content, "---",
             "should correctly handle rogue delimiter"
         );
-        let result: ParsedEntity = matter.parse("---\nname: bar\n---\n---\n---");
+        let result: ParsedEntity = matter.parse("---\nname: bar\n---\n---\n---")?;
         assert_eq!(
             result.content, "---\n---",
             "should correctly handle two rogue delimiter"
         );
+        Ok(())
     }
 
     #[cfg(feature = "toml")]
     #[test]
     #[allow(clippy::approx_constant)]
-    fn test_int_vs_float() {
+    fn test_int_vs_float() -> Result<()> {
         #[derive(serde::Deserialize, PartialEq)]
         struct FrontMatter {
             int: i64,
@@ -389,16 +396,17 @@ int = 42
 float = 3.14159265
 ---"#;
         let matter: Matter<TOML> = Matter::new();
-        let result = matter.parse::<FrontMatter>(raw);
+        let result = matter.parse::<FrontMatter>(raw)?;
 
         let data = result.data.expect("should have parsed front matter");
         assert_eq!(data.int, 42_i64);
         assert_eq!(data.float, 3.14159265_f64);
+        Ok(())
     }
 
     #[cfg(feature = "toml")]
     #[test]
-    fn test_whitespace_content() {
+    fn test_whitespace_content() -> Result<()> {
         let raw = r#"---
 field1 = "Value"
 field2 = [3.14, 42]
@@ -408,18 +416,19 @@ field2 = [3.14, 42]
 
 # This is header"#;
         let matter: Matter<TOML> = Matter::new();
-        let result: ParsedEntity = matter.parse(raw);
+        let result: ParsedEntity = matter.parse(raw)?;
 
-        assert_eq!(result.content, "    this is code block\n\n# This is header")
+        assert_eq!(result.content, "    this is code block\n\n# This is header");
+        Ok(())
     }
 
     #[test]
-    fn test_whitespace_without_frontmatter() {
+    fn test_whitespace_without_frontmatter() -> Result<()> {
         let matter: Matter<YAML> = Matter::new();
         let raw = r#"    An excerpt
 ---
     This is my content"#;
-        let result: ParsedEntity = matter.parse(raw);
+        let result: ParsedEntity = matter.parse(raw)?;
 
         assert_eq!(
             result.content,
@@ -427,17 +436,20 @@ field2 = [3.14, 42]
         );
 
         assert_eq!(result.excerpt.unwrap(), "    An excerpt".to_string());
+
+        Ok(())
     }
 
     #[cfg(feature = "toml")]
     #[test]
-    fn test_gray_matter_strips_trailing_spaces() {
+    fn test_gray_matter_strips_trailing_spaces() -> Result<()> {
         let content = "+++\ntitle = \"Test\"\n+++\n\nLine with trailing spaces.  \nNext line.";
 
         let mut matter_toml = Matter::<TOML>::new();
         matter_toml.delimiter = "+++".to_string();
-        let result: ParsedEntity = matter_toml.parse(content);
+        let result: ParsedEntity = matter_toml.parse(content)?;
 
-        assert_eq!(result.content, "Line with trailing spaces.  \nNext line.")
+        assert_eq!(result.content, "Line with trailing spaces.  \nNext line.");
+        Ok(())
     }
 }

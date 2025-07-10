@@ -15,7 +15,7 @@
 /// Here is content"#;
 ///
 /// let matter = Matter::<TOML>::new();
-/// let result: ParsedEntity = matter.parse(text);
+/// let result: ParsedEntity = matter.parse(text).unwrap();
 ///
 /// assert_eq!(result.data.unwrap()["field"], Pod::String("Value".to_owned()));
 /// assert_eq!(result.excerpt, Some("Here is excerpt".to_owned()));

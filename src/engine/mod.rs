@@ -1,4 +1,5 @@
 use crate::Pod;
+use crate::Result;
 
 #[doc(hidden)]
 pub mod json;
@@ -23,5 +24,5 @@ pub use crate::engine::yaml::YAML;
 /// Implementing this trait in your own engine will allow you to create a custom front matter
 /// format that can be used by [gray_matter](crate).
 pub trait Engine {
-    fn parse(content: &str) -> Pod;
+    fn parse(content: &str) -> Result<Pod>;
 }

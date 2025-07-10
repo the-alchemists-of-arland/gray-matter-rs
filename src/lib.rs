@@ -50,7 +50,7 @@
 //! ## Basic parsing
 //!
 //! ```rust
-//! use gray_matter::{Matter, ParsedEntity};
+//! use gray_matter::{Matter, ParsedEntity, Result};
 //! use gray_matter::engine::YAML;
 //! use serde::Deserialize;
 //!
@@ -65,11 +65,11 @@
 //! Other stuff
 //! "#;
 //!
-//! fn main() {
+//! fn main() -> Result<()> {
 //!     // Select one parser engine, such as YAML, and parse it
 //!     // into gray_matter's custom data type: `Pod`
 //!     let matter = Matter::<YAML>::new();
-//!     let result: ParsedEntity = matter.parse(INPUT);
+//!     let result: ParsedEntity = matter.parse(INPUT)?;
 //!
 //!     // You can now inspect the data from gray_matter.
 //!     assert_eq!(result.content, "Some excerpt\n---\nOther stuff");
@@ -86,9 +86,10 @@
 //!         tags: Vec<String>
 //!     }
 //!
-//!     let result_with_struct = matter.parse::<FrontMatter>(INPUT);
-//!     println!("{:?}", result_with_struct.data)
+//!     let result_with_struct = matter.parse::<FrontMatter>(INPUT)?;
+//!     println!("{:?}", result_with_struct.data);
 //!     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
+//!     Ok(())
 //! }
 //! ```
 
@@ -119,5 +120,7 @@ pub use matter::Matter;
 
 #[doc(hidden)]
 pub mod value;
+#[doc(inline)]
+pub use value::pod::Result;
 #[doc(inline)]
 pub use value::{error::Error, pod::Pod};

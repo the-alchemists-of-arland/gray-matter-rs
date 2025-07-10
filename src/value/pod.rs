@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::mem;
 use std::ops::{Index, IndexMut};
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// A polyglot data type for representing the parsed front matter.
 ///

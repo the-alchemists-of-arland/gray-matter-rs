@@ -25,7 +25,7 @@ gray_matter = "0.3"
 ### Basic parsing
 
 ```rust
-use gray_matter::{Matter, ParsedEntity};
+use gray_matter::{Matter, ParsedEntity, Result};
 use gray_matter::engine::YAML;
 use serde::Deserialize;
 
@@ -40,11 +40,11 @@ Some excerpt
 Other stuff
 "#;
 
-fn main() {
+fn main() -> Result<()> {
     // Select one parser engine, such as YAML, and parse it
     // into gray_matter's custom data type: `Pod`
     let matter = Matter::<YAML>::new();
-    let result: ParsedEntity = matter.parse(INPUT);
+    let result: ParsedEntity = matter.parse(INPUT)?;
 
     // You can now inspect the data from gray_matter.
     assert_eq!(result.content, "Some excerpt\n---\nOther stuff");
@@ -61,9 +61,10 @@ fn main() {
         tags: Vec<String>
     }
 
-    let result_with_struct = matter.parse::<FrontMatter>(INPUT);
-    println!("{:?}", result_with_struct.data)
+    let result_with_struct = matter.parse::<FrontMatter>(INPUT)?;
+    println!("{:?}", result_with_struct.data);
     // FrontMatter { title: "gray-matter-rs", tags: ["gray-matter", "rust"] }
+    Ok(())
 }
 ```
 
@@ -72,11 +73,11 @@ fn main() {
 The default delimiter is `---`, both for front matter and excerpts. You can change this by modifiying the `Matter` struct.
 
 ```rust
-use gray_matter::{Matter, ParsedEntity};
+use gray_matter::{Matter, ParsedEntity, Result};
 use gray_matter::engine::YAML;
 use serde::Deserialize;
 
-fn main() {
+fn main() -> Result<()> {
     let mut matter: Matter<YAML> = Matter::new();
     matter.delimiter = "~~~".to_owned();
     matter.excerpt_delimiter = Some("<!-- endexcerpt -->".to_owned());
@@ -88,7 +89,9 @@ fn main() {
 
     let result: ParsedEntity<FrontMatter> = matter.parse(
         "~~~\nabc: xyz\n~~~\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
-    );
+    )?;
+
+    Ok(())
 }
 ```
 
@@ -97,11 +100,11 @@ fn main() {
 The open and close delimiter are the same by default (`---`). You can change this by modifiying `close_delimiter` property of `Matter` struct
 
 ```rust
-use gray_matter::{Matter, ParsedEntity};
+use gray_matter::{Matter, ParsedEntity, Result};
 use gray_matter::engine::YAML;
 use serde::Deserialize;
 
-fn main() {
+fn main() -> Result<()> {
     let mut matter: Matter<YAML> = Matter::new();
     matter.delimiter = "<!--".to_owned();
     matter.close_delimiter = Some("-->".to_owned());
@@ -114,7 +117,9 @@ fn main() {
 
     let result: ParsedEntity<FrontMatter> = matter.parse(
         "<!--\nabc: xyz\n-->\nfoo\nbar\nbaz\n<!-- endexcerpt -->\ncontent",
-    );
+    )?;
+
+    Ok(())
 }
 ```
 
