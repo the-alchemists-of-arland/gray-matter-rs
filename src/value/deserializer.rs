@@ -1,34 +1,12 @@
-use crate::Pod;
+use crate::{Error, Pod};
 use serde::de::{self, DeserializeOwned, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
 
-/// Custom error type for Pod deserialization
-#[derive(Debug, Clone)]
-pub struct PodDeserializeError {
-    message: String,
-}
-
-impl PodDeserializeError {
-    pub fn new<T: Into<String>>(message: T) -> Self {
-        Self {
-            message: message.into(),
-        }
-    }
-}
-
-impl fmt::Display for PodDeserializeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Pod deserialization error: {}", self.message)
-    }
-}
-
-impl std::error::Error for PodDeserializeError {}
-
-impl de::Error for PodDeserializeError {
+impl de::Error for Error {
     fn custom<T: fmt::Display>(msg: T) -> Self {
-        PodDeserializeError::new(format!("{}", msg))
+        Error::deserialize_error(&format!("{}", msg))
     }
 }
 
@@ -44,7 +22,7 @@ impl<'a> PodArrayAccess<'a> {
 }
 
 impl<'de> SeqAccess<'de> for PodArrayAccess<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
@@ -77,7 +55,7 @@ impl<'a> PodMapAccess<'a> {
 }
 
 impl<'de> MapAccess<'de> for PodMapAccess<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
     where
@@ -98,7 +76,7 @@ impl<'de> MapAccess<'de> for PodMapAccess<'de> {
     {
         match self.value.take() {
             Some(value) => seed.deserialize(value),
-            None => Err(PodDeserializeError::new("value is missing")),
+            None => Err(Error::value_missing()),
         }
     }
 
@@ -119,7 +97,7 @@ impl<'a> PodStringDeserializer<'a> {
 }
 
 impl<'de> Deserializer<'de> for PodStringDeserializer<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -259,7 +237,7 @@ impl<'de> Deserialize<'de> for Pod {
 /// Implementation of Deserializer trait for Pod
 /// This allows direct deserialization from Pod without going through json::Value
 impl<'de> Deserializer<'de> for &'de Pod {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -282,7 +260,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Boolean(b) => visitor.visit_bool(*b),
-            _ => Err(PodDeserializeError::new("expected boolean")),
+            _ => Err(Error::type_error("boolean")),
         }
     }
 
@@ -292,7 +270,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_i8(*i as i8),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -302,7 +280,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_i16(*i as i16),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -312,7 +290,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_i32(*i as i32),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -322,7 +300,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_i64(*i),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -332,7 +310,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_u8(*i as u8),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -342,7 +320,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_u16(*i as u16),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -352,7 +330,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_u32(*i as u32),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -362,7 +340,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_u64(*i as u64),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -373,7 +351,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
         match self {
             Pod::Float(f) => visitor.visit_f32(*f as f32),
             Pod::Integer(i) => visitor.visit_f32(*i as f32),
-            _ => Err(PodDeserializeError::new("expected float")),
+            _ => Err(Error::type_error("float or integer")),
         }
     }
 
@@ -384,7 +362,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
         match self {
             Pod::Float(f) => visitor.visit_f64(*f),
             Pod::Integer(i) => visitor.visit_f64(*i as f64),
-            _ => Err(PodDeserializeError::new("expected float")),
+            _ => Err(Error::type_error("float")),
         }
     }
 
@@ -397,10 +375,10 @@ impl<'de> Deserializer<'de> for &'de Pod {
                 let mut chars = s.chars();
                 match (chars.next(), chars.next()) {
                     (Some(c), None) => visitor.visit_char(c),
-                    _ => Err(PodDeserializeError::new("expected single character")),
+                    _ => Err(Error::type_error("expected single character")),
                 }
             }
-            _ => Err(PodDeserializeError::new("expected string")),
+            _ => Err(Error::type_error("string")),
         }
     }
 
@@ -410,7 +388,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::String(s) => visitor.visit_str(s),
-            _ => Err(PodDeserializeError::new("expected string")),
+            _ => Err(Error::type_error("string")),
         }
     }
 
@@ -420,7 +398,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::String(s) => visitor.visit_string(s.clone()),
-            _ => Err(PodDeserializeError::new("expected string")),
+            _ => Err(Error::type_error("string")),
         }
     }
 
@@ -430,7 +408,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::String(s) => visitor.visit_bytes(s.as_bytes()),
-            _ => Err(PodDeserializeError::new("expected string")),
+            _ => Err(Error::type_error("string")),
         }
     }
 
@@ -440,7 +418,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::String(s) => visitor.visit_byte_buf(s.as_bytes().to_vec()),
-            _ => Err(PodDeserializeError::new("expected string")),
+            _ => Err(Error::type_error("string")),
         }
     }
 
@@ -460,7 +438,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Null => visitor.visit_unit(),
-            _ => Err(PodDeserializeError::new("expected null")),
+            _ => Err(Error::type_error("null")),
         }
     }
 
@@ -492,7 +470,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Array(arr) => visitor.visit_seq(PodArrayAccess::new(arr)),
-            _ => Err(PodDeserializeError::new("expected array")),
+            _ => Err(Error::type_error("array")),
         }
     }
 
@@ -521,7 +499,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Hash(map) => visitor.visit_map(PodMapAccess::new(map)),
-            _ => Err(PodDeserializeError::new("expected hash map")),
+            _ => Err(Error::type_error("hash map")),
         }
     }
 
@@ -553,12 +531,10 @@ impl<'de> Deserializer<'de> for &'de Pod {
                     let (key, value) = map.iter().next().unwrap();
                     visitor.visit_enum(PodEnumAccess::new(key, value))
                 } else {
-                    Err(PodDeserializeError::new("expected single-key map for enum"))
+                    Err(Error::type_error("single-key map for enum"))
                 }
             }
-            _ => Err(PodDeserializeError::new(
-                "expected string or single-key map for enum",
-            )),
+            _ => Err(Error::type_error("string or single-key map for enum")),
         }
     }
 
@@ -583,7 +559,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_i128(*i as i128),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 
@@ -593,7 +569,7 @@ impl<'de> Deserializer<'de> for &'de Pod {
     {
         match self {
             Pod::Integer(i) => visitor.visit_u128(*i as u128),
-            _ => Err(PodDeserializeError::new("expected integer")),
+            _ => Err(Error::type_error("integer")),
         }
     }
 }
@@ -610,7 +586,7 @@ impl<'a> PodStringEnumAccess<'a> {
 }
 
 impl<'de> de::EnumAccess<'de> for PodStringEnumAccess<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
     type Variant = PodStringEnumVariantAccess;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
@@ -626,7 +602,7 @@ impl<'de> de::EnumAccess<'de> for PodStringEnumAccess<'de> {
 struct PodStringEnumVariantAccess;
 
 impl<'de> de::VariantAccess<'de> for PodStringEnumVariantAccess {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
         Ok(())
@@ -636,7 +612,7 @@ impl<'de> de::VariantAccess<'de> for PodStringEnumVariantAccess {
     where
         T: de::DeserializeSeed<'de>,
     {
-        Err(PodDeserializeError::new(
+        Err(Error::unsupported(
             "newtype variant not supported for string enum",
         ))
     }
@@ -645,7 +621,7 @@ impl<'de> de::VariantAccess<'de> for PodStringEnumVariantAccess {
     where
         V: Visitor<'de>,
     {
-        Err(PodDeserializeError::new(
+        Err(Error::unsupported(
             "tuple variant not supported for string enum",
         ))
     }
@@ -658,7 +634,7 @@ impl<'de> de::VariantAccess<'de> for PodStringEnumVariantAccess {
     where
         V: Visitor<'de>,
     {
-        Err(PodDeserializeError::new(
+        Err(Error::unsupported(
             "struct variant not supported for string enum",
         ))
     }
@@ -677,7 +653,7 @@ impl<'a> PodEnumAccess<'a> {
 }
 
 impl<'de> de::EnumAccess<'de> for PodEnumAccess<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
     type Variant = Self;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
@@ -690,12 +666,12 @@ impl<'de> de::EnumAccess<'de> for PodEnumAccess<'de> {
 }
 
 impl<'de> de::VariantAccess<'de> for PodEnumAccess<'de> {
-    type Error = PodDeserializeError;
+    type Error = Error;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
         match self.value {
             Pod::Null => Ok(()),
-            _ => Err(PodDeserializeError::new("expected null for unit variant")),
+            _ => Err(Error::type_error("null for unit variant")),
         }
     }
 
@@ -712,7 +688,7 @@ impl<'de> de::VariantAccess<'de> for PodEnumAccess<'de> {
     {
         match self.value {
             Pod::Array(arr) => visitor.visit_seq(PodArrayAccess::new(arr)),
-            _ => Err(PodDeserializeError::new("expected array for tuple variant")),
+            _ => Err(Error::type_error("array for tuple variant")),
         }
     }
 
@@ -726,9 +702,7 @@ impl<'de> de::VariantAccess<'de> for PodEnumAccess<'de> {
     {
         match self.value {
             Pod::Hash(map) => visitor.visit_map(PodMapAccess::new(map)),
-            _ => Err(PodDeserializeError::new(
-                "expected hash map for struct variant",
-            )),
+            _ => Err(Error::type_error("hash map for struct variant")),
         }
     }
 }
@@ -739,7 +713,7 @@ impl Pod {
     ///
     /// This method now uses a custom `Deserializer` implementation for `Pod`,
     /// providing better performance.
-    pub fn deserialize<T: DeserializeOwned>(&self) -> Result<T, PodDeserializeError> {
+    pub fn deserialize<T: DeserializeOwned>(&self) -> Result<T, Error> {
         T::deserialize(self)
     }
 }
