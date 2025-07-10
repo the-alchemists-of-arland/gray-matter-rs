@@ -1,7 +1,7 @@
 use crate::{Error, Pod};
 use serde::de::{self, DeserializeOwned, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 use std::fmt;
 
 impl de::Error for Error {
@@ -41,7 +41,7 @@ impl<'de> SeqAccess<'de> for PodArrayAccess<'de> {
 
 /// Helper struct for deserializing Pod hash maps
 pub struct PodMapAccess<'a> {
-    iter: std::collections::hash_map::Iter<'a, String, Pod>,
+    iter: hash_map::Iter<'a, String, Pod>,
     value: Option<&'a Pod>,
 }
 

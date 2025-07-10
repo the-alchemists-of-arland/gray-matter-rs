@@ -11,7 +11,6 @@ a struct that implements the `Deserialize` trait from the `serde` crate.
 ### Enhancements
 
 - Implement `Deserializer` for `Pod`. No `json::Value` conversion is needed anymore.
-- Add `Matter::compose` method to compose a front matter string from a `Pod` or `ParsedEntity`.
 
 ## 0.2.9
 
