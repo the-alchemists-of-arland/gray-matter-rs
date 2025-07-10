@@ -284,36 +284,6 @@ impl IndexMut<String> for Pod {
     }
 }
 
-#[cfg(feature = "json")]
-impl Into<json::Value> for Pod {
-    fn into(self) -> json::Value {
-        use json::json;
-        use json::Value::*;
-        match self {
-            Pod::Null => Null,
-            Pod::String(val) => json!(val),
-            Pod::Integer(val) => json!(val),
-            Pod::Float(val) => json!(val),
-            Pod::Boolean(val) => json!(val),
-            Pod::Array(val) => {
-                let mut vec: Vec<json::Value> = vec![];
-                for item in val.into_iter() {
-                    vec.push(item.into());
-                }
-                Array(vec)
-            }
-            Pod::Hash(val) => {
-                use json::Map;
-                let mut hash = Map::new();
-                for (key, value) in val.into_iter() {
-                    hash.insert(key, value.into());
-                }
-                Object(hash)
-            }
-        }
-    }
-}
-
 #[test]
 fn test_partial_compare_null() -> Result<()> {
     assert!(Pod::Null == Pod::Null);
