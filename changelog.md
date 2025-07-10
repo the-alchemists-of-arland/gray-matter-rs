@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0
+
+### Breaking changes
+
+- The `Matter::parse_with_struct` method has been removed. Instead, you can now use the `parse` method with
+a struct that implements the `Deserialize` trait from the `serde` crate.
+- Expose `gray_matter::Error` to allow engine parsing errors to be handled by the user.
+
+### Enhancements
+
+- Implement `Deserializer` for `Pod`. No `json::Value` conversion is needed anymore.
+
+## 0.2.9
+
+### Bug fixes
+
+- Fix parse remove trailing spaces of part content.
+- Fix fixtures stored in wrong and alter yaml complex tests
+
 ## 0.2.8
 
 ### Miscellaneous

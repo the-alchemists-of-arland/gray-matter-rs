@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::Pod;
+use crate::{Error, Result};
 use json::Value;
 use std::collections::HashMap;
 
@@ -7,10 +8,10 @@ use std::collections::HashMap;
 pub struct JSON;
 
 impl Engine for JSON {
-    fn parse(content: &str) -> Pod {
+    fn parse(content: &str) -> Result<Pod> {
         match content.parse::<Value>() {
-            Ok(data) => data.into(),
-            Err(_) => Pod::Null,
+            Ok(data) => Ok(data.into()),
+            Err(e) => Err(Error::deserialize_error(&format!("{}", e))),
         }
     }
 }
@@ -52,13 +53,14 @@ impl From<&Value> for Pod {
 
 #[cfg(test)]
 mod test {
-    use crate::engine::json::JSON;
-    use crate::entity::ParsedEntityStruct;
-    use crate::matter::Matter;
+    use crate::engine::JSON;
+    use crate::Matter;
+    use crate::ParsedEntity;
+    use crate::Result;
     use serde::Deserialize;
 
     #[test]
-    fn test_matter() {
+    fn test_matter() -> Result<()> {
         let matter: Matter<JSON> = Matter::new();
         let input = r#"---
 {
@@ -78,7 +80,8 @@ Other stuff"#;
             title: "JSON".to_string(),
             description: "Front Matter".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
-        assert_eq!(result.data, data_expected);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input)?;
+        assert_eq!(result.data, Some(data_expected));
+        Ok(())
     }
 }

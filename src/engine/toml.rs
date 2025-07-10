@@ -1,5 +1,6 @@
 use crate::engine::Engine;
 use crate::Pod;
+use crate::{Error, Result};
 use std::collections::HashMap;
 use toml::Value;
 
@@ -7,10 +8,10 @@ use toml::Value;
 pub struct TOML;
 
 impl Engine for TOML {
-    fn parse(content: &str) -> Pod {
+    fn parse(content: &str) -> Result<Pod> {
         match toml::from_str::<Value>(content) {
-            Ok(value) => value.into(),
-            Err(_) => Pod::Null,
+            Ok(value) => Ok(value.into()),
+            Err(e) => Err(Error::deserialize_error(&format!("{}", e))),
         }
     }
 }
@@ -46,12 +47,13 @@ impl From<&Value> for Pod {
 #[cfg(test)]
 mod test {
     use crate::engine::toml::TOML;
-    use crate::entity::ParsedEntityStruct;
-    use crate::matter::Matter;
+    use crate::Matter;
+    use crate::ParsedEntity;
+    use crate::Result;
     use serde::Deserialize;
 
     #[test]
-    fn test_matter() {
+    fn test_matter() -> Result<()> {
         let matter: Matter<TOML> = Matter::new();
         let input = r#"---
 title = "TOML"
@@ -72,7 +74,8 @@ categories = "front matter toml"
             description: "Front matter".to_string(),
             categories: "front matter toml".to_string(),
         };
-        let result: ParsedEntityStruct<FrontMatter> = matter.parse_with_struct(input).unwrap();
-        assert_eq!(result.data, data_expected);
+        let result: ParsedEntity<FrontMatter> = matter.parse(input)?;
+        assert_eq!(result.data, Some(data_expected));
+        Ok(())
     }
 }

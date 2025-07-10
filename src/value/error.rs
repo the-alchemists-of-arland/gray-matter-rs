@@ -1,10 +1,15 @@
-use std::error;
-use std::fmt::{Display, Formatter, Result};
+use thiserror::Error;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum Error {
+    #[error("Type error, expected: {0}")]
     TypeError(String),
+    #[error("Deserialize error: {0}")]
     DeserializeError(String),
+    #[error("Value is missin")]
+    ValueMissingError,
+    #[error("Unsupported error: {0}")]
+    UnsupportedError(String),
 }
 
 impl Error {
@@ -12,35 +17,15 @@ impl Error {
         Error::TypeError(expected.into())
     }
 
-    pub fn deserialize_error(msg: String) -> Self {
-        Error::DeserializeError(msg)
+    pub fn deserialize_error(msg: &str) -> Self {
+        Error::DeserializeError(msg.into())
     }
-}
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        use Error::*;
-
-        match *self {
-            TypeError(ref s) => write!(f, "Type error, expected: {s}"),
-            DeserializeError(ref s) => write!(f, "Deserialize error: {s}"),
-        }
+    pub fn value_missing() -> Self {
+        Error::ValueMissingError
     }
-}
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        use Error::*;
-
-        match *self {
-            TypeError(_) => "Type error",
-            DeserializeError(_) => "Deserialize error",
-        }
-    }
-}
-
-impl From<json::Error> for Error {
-    fn from(err: json::Error) -> Self {
-        Error::deserialize_error(err.to_string())
+    pub fn unsupported(msg: &str) -> Self {
+        Error::UnsupportedError(msg.into())
     }
 }

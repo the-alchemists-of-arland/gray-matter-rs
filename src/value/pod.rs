@@ -1,10 +1,9 @@
-use crate::value::error::Error;
-use serde::de::DeserializeOwned;
+use crate::Error;
 use std::collections::HashMap;
 use std::mem;
 use std::ops::{Index, IndexMut};
 
-type IResult<T> = Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// A polyglot data type for representing the parsed front matter.
 ///
@@ -25,19 +24,6 @@ pub enum Pod {
 static NULL: Pod = Pod::Null;
 
 impl Pod {
-    /// Deserialize a `Pod` into any struct that implements
-    /// [`Deserialize`](https://docs.rs/serde/1.0.127/serde/trait.Deserialize.html).
-    ///
-    /// **Note**: The function coerces `self` into a
-    /// [`serde_json::Value`](https://docs.rs/serde_json/1.0.66/serde_json/enum.Value.html) in
-    /// order to work around implementing a custom `Deserializer` for `Pod`.
-    pub fn deserialize<T: DeserializeOwned>(&self) -> json::Result<T> {
-        use json::{from_value, Value};
-        let value: Value = self.clone().into();
-        let ret: T = from_value(value)?;
-        Ok(ret)
-    }
-
     pub fn new_array() -> Pod {
         Pod::Array(vec![])
     }
@@ -47,7 +33,7 @@ impl Pod {
     }
 
     /// Pushes a new value into `Pod::Array`.
-    pub fn push<T>(&mut self, value: T) -> IResult<()>
+    pub fn push<T>(&mut self, value: T) -> Result<()>
     where
         T: Into<Pod>,
     {
@@ -69,7 +55,7 @@ impl Pod {
     }
 
     /// Inserts a key value pair into or override the exist one in Pod::Hash.
-    pub fn insert<T>(&mut self, key: String, val: T) -> IResult<()>
+    pub fn insert<T>(&mut self, key: String, val: T) -> Result<()>
     where
         T: Into<Pod>,
     {
@@ -108,42 +94,42 @@ impl Pod {
         self.len() == 0
     }
 
-    pub fn as_string(&self) -> Result<String, Error> {
+    pub fn as_string(&self) -> Result<String> {
         match *self {
             Pod::String(ref value) => Ok(value.clone()),
             _ => Err(Error::type_error("String")),
         }
     }
 
-    pub fn as_i64(&self) -> Result<i64, Error> {
+    pub fn as_i64(&self) -> Result<i64> {
         match *self {
             Pod::Integer(ref value) => Ok(*value),
             _ => Err(Error::type_error("Integer")),
         }
     }
 
-    pub fn as_f64(&self) -> Result<f64, Error> {
+    pub fn as_f64(&self) -> Result<f64> {
         match *self {
             Pod::Float(ref value) => Ok(*value),
             _ => Err(Error::type_error("Float")),
         }
     }
 
-    pub fn as_bool(&self) -> Result<bool, Error> {
+    pub fn as_bool(&self) -> Result<bool> {
         match *self {
             Pod::Boolean(ref value) => Ok(*value),
             _ => Err(Error::type_error("Boolean")),
         }
     }
 
-    pub fn as_vec(&self) -> Result<Vec<Pod>, Error> {
+    pub fn as_vec(&self) -> Result<Vec<Pod>> {
         match *self {
             Pod::Array(ref value) => Ok(value.clone()),
             _ => Err(Error::type_error("Array")),
         }
     }
 
-    pub fn as_hashmap(&self) -> Result<HashMap<String, Pod>, Error> {
+    pub fn as_hashmap(&self) -> Result<HashMap<String, Pod>> {
         match *self {
             Pod::Hash(ref value) => Ok(value.clone()),
             _ => Err(Error::type_error("Hash")),
@@ -298,6 +284,7 @@ impl IndexMut<String> for Pod {
     }
 }
 
+#[cfg(feature = "json")]
 impl Into<json::Value> for Pod {
     fn into(self) -> json::Value {
         use json::json;
@@ -328,27 +315,27 @@ impl Into<json::Value> for Pod {
 }
 
 #[test]
-fn test_partial_compare_null() -> std::result::Result<(), Error> {
+fn test_partial_compare_null() -> Result<()> {
     assert!(Pod::Null == Pod::Null);
     Ok(())
 }
 
 #[test]
-fn test_partial_compare_boolean() -> std::result::Result<(), Error> {
+fn test_partial_compare_boolean() -> Result<()> {
     assert!(Pod::Boolean(true) == Pod::Boolean(true));
     assert!(Pod::Boolean(true) != Pod::Boolean(false));
     Ok(())
 }
 
 #[test]
-fn test_partial_compare_string() -> std::result::Result<(), Error> {
+fn test_partial_compare_string() -> Result<()> {
     assert!(Pod::String("hello".into()) == Pod::String("hello".into()));
     assert!(Pod::String("hello".into()) != Pod::String("world".into()));
     Ok(())
 }
 
 #[test]
-fn test_partial_compare_array() -> std::result::Result<(), Error> {
+fn test_partial_compare_array() -> Result<()> {
     let mut a = Pod::new_array();
     let mut b = a.clone();
     assert!(a == b);
@@ -365,7 +352,7 @@ fn test_partial_compare_array() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_partial_compare_hash() -> std::result::Result<(), Error> {
+fn test_partial_compare_hash() -> Result<()> {
     let mut a = Pod::new_hash();
     let mut b = a.clone();
     assert!(a == b);
@@ -387,7 +374,7 @@ fn test_partial_compare_hash() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_partial_compare_integer() -> std::result::Result<(), Error> {
+fn test_partial_compare_integer() -> Result<()> {
     let a = Pod::Integer(16);
     let b = Pod::Integer(16);
     assert!(a == b);
@@ -395,7 +382,7 @@ fn test_partial_compare_integer() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_partial_compare_float() -> std::result::Result<(), Error> {
+fn test_partial_compare_float() -> Result<()> {
     let a = Pod::Float(16.01);
     let b = Pod::Float(16.01);
     assert!(a == b);
@@ -403,7 +390,7 @@ fn test_partial_compare_float() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_len_and_is_empty_of_pod() -> std::result::Result<(), Error> {
+fn test_len_and_is_empty_of_pod() -> Result<()> {
     let mut a = Pod::new_array();
     a[0] = Pod::String("hello".into());
     assert!(a.len() == 1);
@@ -416,7 +403,7 @@ fn test_len_and_is_empty_of_pod() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_index_usize() -> std::result::Result<(), Error> {
+fn test_index_usize() -> Result<()> {
     let mut a = Pod::new_array();
     a[0] = Pod::String("hello".into());
     a[1] = Pod::Boolean(true);
@@ -430,7 +417,7 @@ fn test_index_usize() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_index_str() -> std::result::Result<(), Error> {
+fn test_index_str() -> Result<()> {
     let mut a = Pod::new_hash();
     a["hello"] = Pod::String("world".into());
     a["bool"] = Pod::Boolean(false);
@@ -452,7 +439,7 @@ fn test_index_str() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_pod_from_into() -> std::result::Result<(), Error> {
+fn test_pod_from_into() -> Result<()> {
     let a: String = Pod::from("hello".to_string()).into();
     assert!(a == *"hello");
     let b: i64 = Pod::from(1).into();
@@ -473,9 +460,9 @@ fn test_pod_from_into() -> std::result::Result<(), Error> {
 }
 
 #[test]
-fn test_pod_deserialize() -> std::result::Result<(), Error> {
+fn test_pod_deserialize() -> Result<()> {
     use serde::Deserialize;
-    #[derive(Deserialize, PartialEq)]
+    #[derive(Deserialize, PartialEq, Debug)]
     struct Config {
         title: String,
         tags: Vec<String>,
@@ -488,6 +475,41 @@ fn test_pod_deserialize() -> std::result::Result<(), Error> {
         title: "hello".to_string(),
         tags: vec!["gray-matter-rust".to_string()],
     };
-    assert!(cfg == cfg_expected);
+    assert_eq!(cfg, cfg_expected);
+    Ok(())
+}
+
+#[test]
+fn test_pod_to_pod_deserialize() -> Result<()> {
+    // Test Pod-to-Pod conversion through deserialization
+    let original = Pod::String("hello world".to_string());
+    let converted: Pod = original.deserialize()?;
+    assert_eq!(converted, Pod::String("hello world".to_string()));
+
+    let mut original_hash = Pod::new_hash();
+    original_hash["key1"] = Pod::String("value1".to_string());
+    original_hash["key2"] = Pod::Integer(42);
+    original_hash["key3"] = Pod::Boolean(true);
+
+    let converted_hash: Pod = original_hash.deserialize()?;
+    assert_eq!(converted_hash, original_hash);
+
+    let original_array = Pod::Array(vec![
+        Pod::String("item1".to_string()),
+        Pod::Integer(123),
+        Pod::Boolean(false),
+    ]);
+
+    let converted_array: Pod = original_array.deserialize()?;
+    assert_eq!(converted_array, original_array);
+
+    // Test nested structures
+    let mut complex_pod = Pod::new_hash();
+    complex_pod["nested"] = Pod::new_hash();
+    complex_pod["nested"]["array"] = Pod::Array(vec![Pod::String("nested_item".to_string())]);
+
+    let converted_complex: Pod = complex_pod.deserialize()?;
+    assert_eq!(converted_complex, complex_pod);
+
     Ok(())
 }

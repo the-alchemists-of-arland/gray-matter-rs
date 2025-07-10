@@ -1,5 +1,7 @@
 use crate::Pod;
+use crate::Result;
 
+#[cfg(feature = "json")]
 #[doc(hidden)]
 pub mod json;
 #[cfg(feature = "toml")]
@@ -9,6 +11,7 @@ pub mod toml;
 #[doc(hidden)]
 pub mod yaml;
 
+#[cfg(feature = "json")]
 #[doc(inline)]
 pub use crate::engine::json::JSON;
 #[cfg(feature = "toml")]
@@ -23,5 +26,5 @@ pub use crate::engine::yaml::YAML;
 /// Implementing this trait in your own engine will allow you to create a custom front matter
 /// format that can be used by [gray_matter](crate).
 pub trait Engine {
-    fn parse(content: &str) -> Pod;
+    fn parse(content: &str) -> Result<Pod>;
 }
