@@ -28,3 +28,9 @@ yaml = ["dep:yaml"]
 
 [dev-dependencies]
 cargo-husky = { version = "1", features = ["precommit-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"] }
+criterion = { version = "0.5", features = ["html_reports"] }
+gray_matter_old = { package = "gray_matter", version = "0.2"}
+
+[[bench]]
+name = "parsing_benchmark"
+harness = false
