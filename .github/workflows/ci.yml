@@ -25,7 +25,7 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
       - name: Run Tests
-        run: cargo test
+        run: cargo test --all-features
   publish:
     runs-on: ubuntu-latest
     needs: [test]

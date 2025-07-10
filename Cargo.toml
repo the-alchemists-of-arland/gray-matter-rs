@@ -21,7 +21,10 @@ yaml = { package = "yaml-rust2", version = "0.10", optional = true }
 thiserror = "2"
 
 [features]
-default = ["yaml", "toml", "json"]
+default = ["yaml"]
+json = ["dep:json"]
+toml = ["dep:toml"]
+yaml = ["dep:yaml"]
 
 [dev-dependencies]
 cargo-husky = { version = "1", features = ["precommit-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"] }

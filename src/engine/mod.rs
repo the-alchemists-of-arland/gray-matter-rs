@@ -1,6 +1,7 @@
 use crate::Pod;
 use crate::Result;
 
+#[cfg(feature = "json")]
 #[doc(hidden)]
 pub mod json;
 #[cfg(feature = "toml")]
@@ -10,6 +11,7 @@ pub mod toml;
 #[doc(hidden)]
 pub mod yaml;
 
+#[cfg(feature = "json")]
 #[doc(inline)]
 pub use crate::engine::json::JSON;
 #[cfg(feature = "toml")]

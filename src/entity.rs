@@ -6,15 +6,15 @@
 ///
 /// ```rust
 /// # use gray_matter::{Matter, Pod, ParsedEntity};
-/// # use gray_matter::engine::TOML;
+/// # use gray_matter::engine::YAML;
 /// let text = r#"---
-/// field = "Value"
+/// field: Value
 /// ---
 /// Here is excerpt
 /// ---
 /// Here is content"#;
 ///
-/// let matter = Matter::<TOML>::new();
+/// let matter = Matter::<YAML>::new();
 /// let result: ParsedEntity = matter.parse(text).unwrap();
 ///
 /// assert_eq!(result.data.unwrap()["field"], Pod::String("Value".to_owned()));

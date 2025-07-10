@@ -51,7 +51,6 @@
 //!
 //! ```rust
 //! use gray_matter::{Matter, ParsedEntity, Result};
-//! use gray_matter::engine::YAML;
 //! use serde::Deserialize;
 //!
 //! const INPUT: &str = r#"---
@@ -65,9 +64,11 @@
 //! Other stuff
 //! "#;
 //!
+//! #[cfg(feature = "yaml")]
 //! fn main() -> Result<()> {
 //!     // Select one parser engine, such as YAML, and parse it
 //!     // into gray_matter's custom data type: `Pod`
+//!     use gray_matter::engine::YAML;
 //!     let matter = Matter::<YAML>::new();
 //!     let result: ParsedEntity = matter.parse(INPUT)?;
 //!
